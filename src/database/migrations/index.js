@@ -1,37 +1,38 @@
-import CreateProjectsTable from './20211201195550-create-project';
-import CreateUnitsTable from './20211201194652-create-unit';
 import CreateLabelsTable from './20211201194416-create-label';
 import CreateRelatedProjectsTable from './20211201194449-create-related-project';
 import CreateIssuancesTable from './20211201194541-create-issuance';
+import CreateUnitsTable from './20211201194652-create-unit';
 import CreateProjectRatingsTable from './20211201194803-create-project-rating';
 import CreateCoBenefitsTable from './20211201194914-create-co-benefit';
 import CreateProjectLocationTable from './20211201195016-create-project-location';
+import CreateProjectsTable from './20211201195550-create-project';
 import CreateStagingTable from './20211207145446-staging';
 import InitFtsModule from './20211212200953-fulltext-search';
 import CreateLabelUnitsTable from './20211215213314-label-units-junction';
 import CreateProjectTriggers from './20211219182106-sqlite-triggers-projects';
 import CreateUnitTriggers from './20211219184405-sqlite-triggers-units';
 import AddOrgUidIndex from './20220115134849-add-orgUid-index';
+import CreateMetaTable from './20220119211024-create-meta-table';
 import CreateSimulatorTable from './20220122141750-create-simulator-table';
 import CreateOrganizationTable from './20220122164836-create-organization-table';
 import CreateEstimationTable from './20220127190529-create-estimation-table';
 import CreateAuditTable from './20220222204323-create-audit-table';
-import CreateMetaTable from './20220119211024-create-meta-table';
 import CreateGoveranceTable from './20220315134151-create-governance-table';
 import AddCommentColumnToDataModelTables from './20220428144558-add-comment-column-to-all-datamodels';
 import AddSerialNumberFields from './20220504180739-add-serial-number-fields';
 import AddDescriptionFieldToProjects from './20220509125335-add-description-field-to-projects';
 import RepopulateVirtualTables from './20220515223227-re-populate-virtual-tables';
 import AddAuthorColumnToAuditTable from './20220708210357-adding-author-column-to-audit-table';
-import CreateFileStore from './20220724212553-create-file-store';
 import AddOptionalMethodology2FieldToProject from './20220721212845-add-optional-methodology2-field-to-project';
-import AddFiltStoreSubscribedColumnToProject from './20220809182156-AddFileStoreSubscribedColumn';
+import CreateFileStore from './20220724212553-create-file-store';
 import PopulateUnitsFTS from './20220808192709-populate-units-fts';
+import AddFiltStoreSubscribedColumnToProject from './20220809182156-AddFileStoreSubscribedColumn';
 import ResetDBForNewSingletons from './20220816155101-reset-db-for-new-singletons';
 import AddIsTransferColumn from './20220825124702-add-isTransfer-column';
 import AddOrgMetadata from './20220831023546-add-org-metadata';
 import OrgSyncStatus from './20231020201652-OrgSyncStatus';
 import OrgSyncRemaining from './20231020214357-OrgSyncRemainingCount';
+import CreateRules from './create-rules';
 
 export const migrations = [
   {
@@ -173,5 +174,9 @@ export const migrations = [
   {
     migration: OrgSyncRemaining,
     name: '20231020214357-OrgSyncRemainingCount',
+  },
+  {
+    migration: CreateRules,
+    name: 'create-rules',
   },
 ];
