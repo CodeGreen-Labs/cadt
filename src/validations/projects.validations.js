@@ -1,13 +1,13 @@
 import Joi from 'joi';
 import {
   cobenefitSchema,
-  locationSchema,
-  ratingSchema,
-  relatedProjectSchema,
-  labelSchema,
-  issuanceSchema,
   estimationSchema,
+  issuanceSchema,
+  labelSchema,
+  locationSchema,
 } from '../validations';
+import { ratingSchema } from './ratings.validations';
+import { relatedProjectSchema } from './relatedProjects.validations';
 
 import {
   genericFilterRegex,

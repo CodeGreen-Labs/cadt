@@ -5,7 +5,7 @@ import {
   genericSortColumnRegex,
 } from '../utils/string-utils';
 
-export const baseSchema = {
+export const ruleBaseSchema = {
   origin_project_id: Joi.string().required(),
   warehouse_project_id: Joi.string().required(),
   warehouse_unit_id: Joi.string().required(),
@@ -36,12 +36,12 @@ export const rulesGetQuerySchema = Joi.object()
   .with('limit', 'page');
 
 export const rulesPostSchema = Joi.object({
-  ...baseSchema,
+  ...ruleBaseSchema,
 });
 
 export const rulesUpdateSchema = Joi.object({
   cat_id: Joi.string().required(),
-  ...baseSchema,
+  ...ruleBaseSchema,
 });
 
 export const rulesDeleteSchema = Joi.object({
