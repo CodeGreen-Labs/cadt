@@ -1,18 +1,15 @@
 // migration.ts
 'use strict';
 
-import { uuid as uuidv4 } from 'uuidv4';
-
 export default {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable(
       'rules',
       {
-        id: {
+        cat_id: {
           type: Sequelize.STRING,
           allowNull: false,
           unique: true,
-          defaultValue: () => uuidv4(),
           primaryKey: true,
         },
         origin_project_id: {
@@ -28,10 +25,6 @@ export default {
           allowNull: false,
         },
         issuance_id: {
-          type: Sequelize.STRING,
-          allowNull: false,
-        },
-        cat_id: {
           type: Sequelize.STRING,
           allowNull: false,
         },

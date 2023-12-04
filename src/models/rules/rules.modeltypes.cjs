@@ -1,13 +1,11 @@
-const { uuid: uuidv4 } = require('uuidv4');
 const Sequelize = require('sequelize');
 
 module.exports = {
-  id: {
+  cat_id: {
     type: Sequelize.STRING,
     allowNull: false,
-    unique: true,
-    defaultValue: () => uuidv4(),
     primaryKey: true,
+    unique: true,
   },
   origin_project_id: {
     type: Sequelize.STRING,
@@ -25,10 +23,7 @@ module.exports = {
     type: Sequelize.STRING,
     allowNull: false,
   },
-  cat_id: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  },
+
   kyc_receiving: {
     type: Sequelize.INTEGER,
     allowNull: false,
