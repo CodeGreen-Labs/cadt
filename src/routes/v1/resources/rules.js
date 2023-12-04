@@ -7,15 +7,12 @@ import { RuleController } from '../../../controllers';
 const validator = joiExpress.createValidator({ passError: true });
 const RuleRouter = express.Router();
 
-import {
-  projectsGetQuerySchema,
-  projectsPostSchema,
-} from '../../../validations';
+import { rulesGetQuerySchema, rulesPostSchema } from '../../../validations';
 
-RuleRouter.get('/', validator.query(projectsGetQuerySchema), (req, res) => {
+RuleRouter.get('/', validator.query(rulesGetQuerySchema), (req, res) => {
   return RuleController.findAll(req, res);
 });
 
-RuleRouter.post('/', validator.body(projectsPostSchema), RuleController.create);
+RuleRouter.post('/', validator.body(rulesPostSchema), RuleController.create);
 
 export { RuleRouter };

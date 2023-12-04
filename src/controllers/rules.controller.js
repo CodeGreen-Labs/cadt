@@ -1,12 +1,9 @@
 import _ from 'lodash';
 
-import xlsx from 'node-xlsx';
 import { Sequelize } from 'sequelize';
 import { uuid as uuidv4 } from 'uuidv4';
 
-import { ModelKeys, Organization, Project, Staging } from '../models';
-
-import { logger } from '../config/logger.cjs';
+import { Project, Rule, Staging } from '../models';
 
 import {
   genericFilterRegex,
@@ -21,27 +18,12 @@ import {
 } from '../utils/helpers';
 
 import {
-  assertCsvFileInRequest,
   assertHomeOrgExists,
   assertIfReadOnlyMode,
   assertNoPendingCommits,
-  assertOrgIsHomeOrg,
-  assertProjectRecordExists,
-  assertRecordExistance,
-  assertStagingTableIsEmpty,
 } from '../utils/data-assertions';
 
-import { createProjectRecordsFromCsv } from '../utils/csv-utils';
-
 import { formatModelAssociationName } from '../utils/model-utils.js';
-import {
-  collapseTablesData,
-  createXlsFromSequelizeResults,
-  sendXls,
-  tableDataFromXlsx,
-  transformMetaUid,
-  updateTableWithData,
-} from '../utils/xls';
 
 export const create = async (req, res) => {
   try {
@@ -49,22 +31,30 @@ export const create = async (req, res) => {
     await assertHomeOrgExists();
     await assertNoPendingCommits();
 
+    const newRecord = _.cloneDeep(req.body);
+
     const uuid = uuidv4();
 
+    await Staging.create({
+      uuid,
+      action: 'INSERT',
+      table: Rule.stagingTableName,
+      data: JSON.stringify([newRecord]),
+    });
+
     res.json({
-      message: 'Project staged successfully',
+      message: 'Rules staged successfully',
       uuid,
       success: true,
     });
   } catch (err) {
     res.status(400).json({
-      message: 'Error creating new project',
+      message: 'Error creating new rule',
       error: err.message,
       success: false,
     });
   }
 };
-
 export const findAll = async (req, res) => {
   try {
     let { page, limit, search, orgUid, columns, xls, filter, order } =
