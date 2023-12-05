@@ -6,7 +6,7 @@ module.exports = {
     type: Sequelize.STRING,
     allowNull: false,
     unique: true,
-    defaultValue: () => uuidv4(),
+    defaultValue: uuidv4,
     primaryKey: true,
   },
   level: {

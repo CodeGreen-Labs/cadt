@@ -1,14 +1,22 @@
 import Sequelize from 'sequelize';
 const { Model } = Sequelize;
-import ModelTypes from './credential-levels.modeltypes.cjs';
+import ModelTypes from './credential-levels.model.types.cjs';
 import { safeMirrorDbHandler, sequelize } from '../../database';
 import { Credential } from '../credentials';
+import { CredentialLevelMirror } from './credential-levels.model.mirror';
 
 class CredentialLevel extends Model {
   static associate() {
-    CredentialLevel.belongsTo(Credential, {
-      targetKey: 'credentialId',
-      foreignKey: 'credentialId',
+    CredentialLevel.hasMany(Credential, {
+      foreignKey: 'credentialLevelId', // This should match the foreign key in the Credential model
+      as: 'credentials',
+    });
+
+    safeMirrorDbHandler(() => {
+      CredentialLevelMirror.hasMany(Credential, {
+        foreignKey: 'credentialLevelId',
+        as: 'credentials',
+      });
     });
   }
 
@@ -49,6 +57,7 @@ class CredentialLevel extends Model {
 CredentialLevel.init(ModelTypes, {
   sequelize,
   modelName: 'credentialLevel',
+  tableName: 'credential_levels',
   timestamps: true,
 });
 

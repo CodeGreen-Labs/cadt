@@ -4,15 +4,14 @@ import Sequelize from 'sequelize';
 const { Model } = Sequelize;
 
 import { sequelizeMirror, safeMirrorDbHandler } from '../../database';
-import ModelTypes from './users.modeltypes.cjs';
+import ModelTypes from './wallet-users.model.types.cjs';
 
-class UserMirror extends Model {}
+class WalletUserMirror extends Model {}
 
 safeMirrorDbHandler(() => {
-  UserMirror.init(ModelTypes, {
+  WalletUserMirror.init(ModelTypes, {
     sequelize: sequelizeMirror,
-    modelName: 'user',
-    foreignKey: 'userId',
+    modelName: 'walletUser',
     timestamps: true,
     timezone: '+00:00',
     define: {
@@ -24,7 +23,9 @@ safeMirrorDbHandler(() => {
       dateStrings: true,
       typeCast: true,
     },
+    createdAt: true,
+    updatedAt: true,
   });
 });
 
-export { UserMirror };
+export { WalletUserMirror };

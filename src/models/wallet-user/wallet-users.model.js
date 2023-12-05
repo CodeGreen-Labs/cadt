@@ -4,15 +4,22 @@ import Sequelize from 'sequelize';
 const { Model } = Sequelize;
 import { sequelize, safeMirrorDbHandler } from '../../database';
 
-import ModelTypes from './users.modeltypes.cjs';
-import { UserMirror } from './user.model.mirror';
+import ModelTypes from './wallet-users.model.types.cjs';
+import { WalletUserMirror } from './wallet-users.model.mirror';
 import { Credential } from '../credentials';
 
-class User extends Model {
+class WalletUser extends Model {
   static associate() {
-    User.belongsTo(Credential, {
-      targetKey: 'credentialId',
-      foreignKey: 'credentialId',
+    WalletUser.hasMany(Credential, {
+      foreignKey: 'walletUserId',
+      as: 'credentials',
+    });
+
+    safeMirrorDbHandler(() => {
+      WalletUserMirror.hasMany(Credential, {
+        foreignKey: 'walletUserId',
+        as: 'credentialLevel',
+      });
     });
   }
 
@@ -22,7 +29,7 @@ class User extends Model {
         ...options,
         transaction: options?.mirrorTransaction,
       };
-      await UserMirror.create(values, mirrorOptions);
+      await WalletUserMirror.create(values, mirrorOptions);
     });
     return super.create(values, options);
   }
@@ -33,7 +40,7 @@ class User extends Model {
         ...options,
         transaction: options?.mirrorTransaction,
       };
-      await UserMirror.destroy(mirrorOptions);
+      await WalletUserMirror.destroy(mirrorOptions);
     });
     return super.destroy(options);
   }
@@ -44,16 +51,17 @@ class User extends Model {
         ...options,
         transaction: options?.mirrorTransaction,
       };
-      await UserMirror.upsert(values, mirrorOptions);
+      await WalletUserMirror.upsert(values, mirrorOptions);
     });
     return super.upsert(values, options);
   }
 }
 
-User.init(ModelTypes, {
+WalletUser.init(ModelTypes, {
   sequelize,
-  modelName: 'user',
+  modelName: 'WalletUser',
+  tableName: 'wallet_users',
   timestamps: true,
 });
 
-export { User };
+export { WalletUser };

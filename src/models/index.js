@@ -10,7 +10,7 @@ import { Estimation } from './estimations';
 import { LabelUnit } from './labelUnits';
 import { Credential } from './credentials';
 import { CredentialLevel } from './credential-levels';
-import { User } from './users';
+import { WalletUser } from './wallet-user';
 
 Project.associate();
 CoBenefit.associate();
@@ -23,7 +23,7 @@ Issuance.associate();
 Estimation.associate();
 Credential.associate();
 CredentialLevel.associate();
-User.associate();
+WalletUser.associate();
 
 export * from './projects';
 export * from './co-benefits';
@@ -44,7 +44,7 @@ export * from './governance';
 export * from './file-store';
 export * from './credentials';
 export * from './credential-levels';
-export * from './users';
+export * from './wallet-user';
 
 export const ModelKeys = {
   unit: Unit,
@@ -67,6 +67,6 @@ export const ModelKeys = {
   credentials: Credential,
   credentialLevel: CredentialLevel,
   credentialLevels: CredentialLevel,
-  user: User,
-  users: User,
+  walletUser: WalletUser,
+  walletUsers: WalletUser,
 };

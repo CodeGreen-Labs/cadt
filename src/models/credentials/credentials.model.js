@@ -1,8 +1,8 @@
 import Sequelize from 'sequelize';
 const { Model } = Sequelize;
 import * as rxjs from 'rxjs';
-import ModelTypes from './credentials.modeltypes.cjs';
-import { CredentialLevel, User } from '../';
+import ModelTypes from './credentials.model.types.cjs';
+import { CredentialLevel, WalletUser } from '../';
 import { CredentialMirror } from './credentials.model.mirror';
 import { sequelize, safeMirrorDbHandler } from '../../database';
 
@@ -18,25 +18,29 @@ class Credential extends Model {
       pluralize: true,
     },
     {
-      model: User,
+      model: WalletUser,
       pluralize: true,
     },
   ];
 
   static associate() {
-    Credential.hasOne(CredentialLevel, {
-      foreignKey: 'credentialId',
+    Credential.belongsTo(CredentialLevel, {
+      foreignKey: 'credentialLevelId',
+      as: 'credentialLevel',
     });
-    Credential.hasOne(User, {
-      foreignKey: 'credentialId',
+    Credential.belongsTo(WalletUser, {
+      foreignKey: 'walletUserId',
+      as: 'user',
     });
 
     safeMirrorDbHandler(() => {
-      CredentialMirror.hasOne(CredentialLevel, {
-        foreignKey: 'credentialId',
+      CredentialMirror.belongsTo(CredentialLevel, {
+        foreignKey: 'credentialLevelId',
+        as: 'credentialLevel',
       });
-      CredentialMirror.hasOne(User, {
-        foreignKey: 'credentialId',
+      CredentialMirror.belongsTo(WalletUser, {
+        foreignKey: 'walletUserId',
+        as: 'user',
       });
     });
   }
@@ -93,6 +97,8 @@ class Credential extends Model {
 Credential.init(ModelTypes, {
   sequelize,
   modelName: 'credential',
+  tableName: 'credentials',
+  freezeTableName: true,
   timestamps: true,
 });
 
