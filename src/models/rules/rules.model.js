@@ -37,7 +37,7 @@ class Rule extends Model {
 
 Rule.init(ModelTypes, {
   sequelize,
-  modelName: 'rule',
+  modelName: 'rules',
   timestamps: true,
 });
 
