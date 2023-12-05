@@ -4,16 +4,17 @@ import express from 'express';
 const V1Router = express.Router();
 
 import {
-  ProjectRouter,
-  UnitRouter,
-  StagingRouter,
-  OrganizationRouter,
+  AuditRouter,
+  FileStoreRouter,
+  GovernanceRouter,
   IssuanceRouter,
   LabelRouter,
-  AuditRouter,
-  GovernanceRouter,
-  FileStoreRouter,
   OfferRouter,
+  OrganizationRouter,
+  ProjectRouter,
+  RuleRouter,
+  StagingRouter,
+  UnitRouter,
 } from './resources';
 
 V1Router.use('/projects', ProjectRouter);
@@ -26,5 +27,6 @@ V1Router.use('/audit', AuditRouter);
 V1Router.use('/governance', GovernanceRouter);
 V1Router.use('/filestore', FileStoreRouter);
 V1Router.use('/offer', OfferRouter);
+V1Router.use('/rules', RuleRouter);
 
 export { V1Router };

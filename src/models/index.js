@@ -1,13 +1,14 @@
-import { Project } from './projects';
 import { CoBenefit } from './co-benefits';
-import { ProjectLocation } from './locations';
+import { Estimation } from './estimations';
+import { Issuance } from './issuances';
+import { LabelUnit } from './labelUnits';
 import { Label } from './labels';
+import { ProjectLocation } from './locations';
+import { Project } from './projects';
 import { Rating } from './ratings';
 import { RelatedProject } from './related-projects';
+import { Rule } from './rules';
 import { Unit } from './units';
-import { Issuance } from './issuances';
-import { Estimation } from './estimations';
-import { LabelUnit } from './labelUnits';
 
 Project.associate();
 CoBenefit.associate();
@@ -18,24 +19,26 @@ RelatedProject.associate();
 Unit.associate();
 Issuance.associate();
 Estimation.associate();
+Rule.associate();
 
-export * from './projects';
-export * from './co-benefits';
-export * from './locations';
-export * from './ratings';
-export * from './labels';
-export * from './related-projects';
-export * from './units';
-export * from './issuances';
-export * from './staging';
-export * from './organizations';
-export * from './meta';
-export * from './simulator';
-export * from './labelUnits';
-export * from './estimations';
 export * from './audit';
-export * from './governance';
+export * from './co-benefits';
+export * from './estimations';
 export * from './file-store';
+export * from './governance';
+export * from './issuances';
+export * from './labelUnits';
+export * from './labels';
+export * from './locations';
+export * from './meta';
+export * from './organizations';
+export * from './projects';
+export * from './ratings';
+export * from './related-projects';
+export * from './rules';
+export * from './simulator';
+export * from './staging';
+export * from './units';
 
 export const ModelKeys = {
   unit: Unit,
@@ -54,4 +57,6 @@ export const ModelKeys = {
   project: Project,
   projectRatings: Rating,
   projectLocations: ProjectLocation,
+  rule: Rule,
+  rules: Rule,
 };
