@@ -15,6 +15,7 @@ import {
   RuleRouter,
   StagingRouter,
   UnitRouter,
+  CredentialLevelRouter,
 } from './resources';
 
 V1Router.use('/projects', ProjectRouter);
@@ -28,5 +29,6 @@ V1Router.use('/governance', GovernanceRouter);
 V1Router.use('/filestore', FileStoreRouter);
 V1Router.use('/offer', OfferRouter);
 V1Router.use('/rules', RuleRouter);
+V1Router.use('/credential-levels', CredentialLevelRouter);
 
 export { V1Router };

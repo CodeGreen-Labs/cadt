@@ -9,3 +9,4 @@ export * as ProjectController from './project.controller';
 export * as RuleController from './rules.controller';
 export * as StagingController from './staging.controller';
 export * as UnitController from './units.controller';
+export * as credentialLevelController from './credential-level.controller';
