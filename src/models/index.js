@@ -8,6 +8,9 @@ import { Unit } from './units';
 import { Issuance } from './issuances';
 import { Estimation } from './estimations';
 import { LabelUnit } from './labelUnits';
+import { Credential } from './credentials';
+import { CredentialLevel } from './credential-levels';
+import { User } from './users';
 
 Project.associate();
 CoBenefit.associate();
@@ -18,6 +21,9 @@ RelatedProject.associate();
 Unit.associate();
 Issuance.associate();
 Estimation.associate();
+Credential.associate();
+CredentialLevel.associate();
+User.associate();
 
 export * from './projects';
 export * from './co-benefits';
@@ -36,6 +42,9 @@ export * from './estimations';
 export * from './audit';
 export * from './governance';
 export * from './file-store';
+export * from './credentials';
+export * from './credential-levels';
+export * from './users';
 
 export const ModelKeys = {
   unit: Unit,
@@ -54,4 +63,10 @@ export const ModelKeys = {
   project: Project,
   projectRatings: Rating,
   projectLocations: ProjectLocation,
+  credential: Credential,
+  credentials: Credential,
+  credentialLevel: CredentialLevel,
+  credentialLevels: CredentialLevel,
+  user: User,
+  users: User,
 };
