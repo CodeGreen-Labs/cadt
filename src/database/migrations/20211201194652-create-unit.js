@@ -101,6 +101,9 @@ export default {
           type: Sequelize.DATE,
           defaultValue: Sequelize.NOW,
         },
+        testId: {
+          type: Sequelize.STRING,
+        },
       },
       {
         charset: 'utf8mb4',
