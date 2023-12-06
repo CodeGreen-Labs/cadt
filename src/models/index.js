@@ -9,6 +9,9 @@ import { Rating } from './ratings';
 import { RelatedProject } from './related-projects';
 import { Rule } from './rules';
 import { Unit } from './units';
+import { Credential } from './credentials';
+import { CredentialLevel } from './credential-levels';
+import { WalletUser } from './wallet-user';
 
 Project.associate();
 CoBenefit.associate();
@@ -19,6 +22,9 @@ RelatedProject.associate();
 Unit.associate();
 Issuance.associate();
 Estimation.associate();
+Credential.associate();
+CredentialLevel.associate();
+WalletUser.associate();
 Rule.associate();
 
 export * from './audit';
@@ -39,6 +45,9 @@ export * from './rules';
 export * from './simulator';
 export * from './staging';
 export * from './units';
+export * from './credentials';
+export * from './credential-levels';
+export * from './wallet-user';
 
 export const ModelKeys = {
   unit: Unit,
@@ -57,6 +66,12 @@ export const ModelKeys = {
   project: Project,
   projectRatings: Rating,
   projectLocations: ProjectLocation,
+  credential: Credential,
+  credentials: Credential,
+  credentialLevel: CredentialLevel,
+  credentialLevels: CredentialLevel,
+  walletUser: WalletUser,
+  walletUsers: WalletUser,
   rule: Rule,
   rules: Rule,
 };
