@@ -1,26 +1,26 @@
 'use strict';
-
 import _ from 'lodash';
-import Sequelize from 'sequelize';
 import * as rxjs from 'rxjs';
+import Sequelize from 'sequelize';
+import { logger } from '../../config/logger.cjs';
 const { Model } = Sequelize;
 
 import {
-  sequelize,
   safeMirrorDbHandler,
   sanitizeSqliteFtsQuery,
+  sequelize,
 } from '../../database';
 
 import {
-  RelatedProject,
+  CoBenefit,
+  Estimation,
   Issuance,
   Label,
-  ProjectLocation,
-  CoBenefit,
-  Staging,
-  Estimation,
-  Rating,
   Organization,
+  ProjectLocation,
+  Rating,
+  RelatedProject,
+  Staging,
 } from '../';
 
 import {
@@ -28,15 +28,15 @@ import {
   transformFullXslsToChangeList,
 } from '../../utils/xls';
 
-import ModelTypes from './projects.modeltypes.cjs';
-import { ProjectMirror } from './projects.model.mirror';
-import { projectsUpdateSchema } from '../../validations/index';
+import dataLayer from '../../datalayer';
+import { keyValueToChangeList } from '../../utils/datalayer-utils';
 import {
   formatModelAssociationName,
   getDeletedItems,
 } from '../../utils/model-utils.js';
-import { keyValueToChangeList } from '../../utils/datalayer-utils';
-import dataLayer from '../../datalayer';
+import { projectsUpdateSchema } from '../../validations/index';
+import { ProjectMirror } from './projects.model.mirror';
+import ModelTypes from './projects.modeltypes.cjs';
 
 class Project extends Model {
   static stagingTableName = 'Projects';
@@ -122,6 +122,7 @@ class Project extends Model {
   }
 
   static async create(values, options) {
+    logger.info('create project');
     safeMirrorDbHandler(async () => {
       const mirrorOptions = {
         ...options,

@@ -1,25 +1,25 @@
 'use strict';
 
 import _ from 'lodash';
-import Sequelize from 'sequelize';
 import * as rxjs from 'rxjs';
+import Sequelize from 'sequelize';
 import {
-  sequelize,
   safeMirrorDbHandler,
   sanitizeSqliteFtsQuery,
+  sequelize,
 } from '../../database';
-import { Label, Issuance, Staging, Organization } from '../../models';
+import { Issuance, Label, Organization, Staging } from '../../models';
 import { UnitMirror } from './units.model.mirror';
 import ModelTypes from './units.modeltypes.cjs';
 
+import dataLayer from '../../datalayer';
+import { keyValueToChangeList } from '../../utils/datalayer-utils';
+import { getDeletedItems } from '../../utils/model-utils.js';
 import {
   createXlsFromSequelizeResults,
   transformFullXslsToChangeList,
 } from '../../utils/xls';
-import { keyValueToChangeList } from '../../utils/datalayer-utils';
 import { unitsUpdateSchema } from '../../validations/index.js';
-import { getDeletedItems } from '../../utils/model-utils.js';
-import dataLayer from '../../datalayer';
 
 const { Model } = Sequelize;
 

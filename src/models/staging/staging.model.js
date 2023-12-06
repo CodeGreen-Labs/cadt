@@ -1,13 +1,20 @@
 'use strict';
-
 import _ from 'lodash';
-import { uuid as uuidv4 } from 'uuidv4';
 import Sequelize from 'sequelize';
+import { uuid as uuidv4 } from 'uuidv4';
+
+import {
+  Issuance,
+  Meta,
+  Organization,
+  Project,
+  Rule,
+  Unit,
+} from '../../models';
+import { encodeHex, generateOffer } from '../../utils/datalayer-utils';
 const Op = Sequelize.Op;
 
 const { Model } = Sequelize;
-import { Project, Unit, Organization, Issuance, Meta } from '../../models';
-import { encodeHex, generateOffer } from '../../utils/datalayer-utils';
 
 import * as rxjs from 'rxjs';
 import { sequelize } from '../../database';
@@ -15,8 +22,8 @@ import { sequelize } from '../../database';
 import datalayer from '../../datalayer';
 import { makeOffer } from '../../datalayer/persistance';
 
-import ModelTypes from './staging.modeltypes.cjs';
 import { formatModelAssociationName } from '../../utils/model-utils.js';
+import ModelTypes from './staging.modeltypes.cjs';
 
 import {
   createXlsFromSequelizeResults,
@@ -488,14 +495,21 @@ class Staging extends Model {
       throw new Error('No records to send to DataLayer');
     }
 
-    const [unitsChangeList, projectsChangeList] = await Promise.all([
-      Unit.generateChangeListFromStagedData(stagedRecords, comment, author),
-      Project.generateChangeListFromStagedData(stagedRecords, comment, author),
-    ]);
+    const [unitsChangeList, projectsChangeList, rulesChangeList] =
+      await Promise.all([
+        Unit.generateChangeListFromStagedData(stagedRecords, comment, author),
+        Project.generateChangeListFromStagedData(
+          stagedRecords,
+          comment,
+          author,
+        ),
+        Rule.generateChangeListFromStagedData(stagedRecords, comment, author),
+      ]);
 
     const unifiedChangeList = {
       ...projectsChangeList,
       ...unitsChangeList,
+      ...rulesChangeList,
       issuances: [
         ...unitsChangeList.issuances,
         ...projectsChangeList.issuances,
