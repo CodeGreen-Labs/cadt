@@ -1,7 +1,6 @@
 import _ from 'lodash';
 
 import { Sequelize } from 'sequelize';
-import { uuid as uuidv4 } from 'uuidv4';
 
 import { Project, Rule, Staging } from '../models';
 
@@ -33,10 +32,8 @@ export const create = async (req, res) => {
 
     const newRecord = _.cloneDeep(req.body);
 
-    const uuid = uuidv4();
-
     await Staging.create({
-      uuid,
+      uuid: newRecord.cat_id,
       action: 'INSERT',
       table: Rule.stagingTableName,
       data: JSON.stringify([newRecord]),
@@ -44,7 +41,7 @@ export const create = async (req, res) => {
 
     res.json({
       message: 'Rules staged successfully',
-      uuid,
+      uuid: newRecord.cat_id,
       success: true,
     });
   } catch (err) {

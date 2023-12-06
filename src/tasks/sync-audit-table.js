@@ -1,20 +1,19 @@
 import _ from 'lodash';
 
+import { Mutex } from 'async-mutex';
+import dotenv from 'dotenv';
 import { Sequelize } from 'sequelize';
 import { SimpleIntervalJob, Task } from 'toad-scheduler';
-import { Mutex } from 'async-mutex';
-import { Organization, Audit, ModelKeys, Staging, Meta } from '../models';
-import datalayer from '../datalayer';
-import { decodeHex, encodeHex } from '../utils/datalayer-utils';
-import dotenv from 'dotenv';
 import { logger } from '../config/logger.cjs';
-import { sequelize, sequelizeMirror } from '../database';
+import { mirrorDBEnabled, sequelize, sequelizeMirror } from '../database';
+import datalayer from '../datalayer';
+import { Audit, Meta, ModelKeys, Organization, Staging } from '../models';
 import { getConfig } from '../utils/config-loader';
 import {
   assertDataLayerAvailable,
   assertWalletIsSynced,
 } from '../utils/data-assertions';
-import { mirrorDBEnabled } from '../database';
+import { decodeHex, encodeHex } from '../utils/datalayer-utils';
 
 dotenv.config();
 const mutex = new Mutex();
@@ -411,6 +410,8 @@ const syncOrganizationAudit = async (organization) => {
                 'project',
                 'units',
                 'projects',
+                'rules',
+                'rule',
               ].includes(modelKey)
                 ? primaryKeyValue
                 : undefined;

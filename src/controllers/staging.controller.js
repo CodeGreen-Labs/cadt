@@ -1,20 +1,20 @@
 import _ from 'lodash';
 
 import { Sequelize } from 'sequelize';
+import { logger } from '../config/logger.cjs';
 import { Staging } from '../models';
-
 import {
   optionallyPaginatedResponse,
   paginationParams,
 } from '../utils/helpers';
 
 import {
-  assertStagingRecordExists,
   assertHomeOrgExists,
-  assertNoPendingCommits,
-  assertWalletIsSynced,
   assertIfReadOnlyMode,
+  assertNoPendingCommits,
+  assertStagingRecordExists,
   assertStagingTableNotEmpty,
+  assertWalletIsSynced,
 } from '../utils/data-assertions';
 
 export const hasPendingTransactions = async (req, res) => {
@@ -124,6 +124,8 @@ export const destroy = async (req, res) => {
     await assertIfReadOnlyMode();
     await assertHomeOrgExists();
     await assertStagingRecordExists(req.body.uuid);
+
+    logger.info('destroy staging', req.body.uuid);
     await Staging.destroy({
       where: {
         uuid: req.body.uuid,
