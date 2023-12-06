@@ -20,6 +20,7 @@ import {
   assertHomeOrgExists,
   assertIfReadOnlyMode,
   assertNoPendingCommits,
+  assertRuleRecordExists,
 } from '../utils/data-assertions';
 
 import { formatModelAssociationName } from '../utils/model-utils.js';
@@ -170,6 +171,41 @@ export const findOne = async (req, res) => {
     res.status(400).json({
       message: 'Cant find Unit.',
       error: error.message,
+      success: false,
+    });
+  }
+};
+
+export const update = async (req, res) => {
+  try {
+    await assertIfReadOnlyMode();
+    await assertHomeOrgExists();
+    await assertNoPendingCommits();
+    await assertRuleRecordExists(req.body.cat_id);
+
+    const updatedRecord = _.cloneDeep(req.body);
+
+    let stagedRecord = Array.isArray(updatedRecord)
+      ? updatedRecord
+      : [updatedRecord];
+
+    const stagedData = {
+      uuid: req.body.cat_id,
+      action: 'UPDATE',
+      table: Rule.stagingTableName,
+      data: JSON.stringify(stagedRecord),
+    };
+
+    await Staging.upsert(stagedData);
+
+    res.json({
+      message: 'Rule update added to staging',
+      success: true,
+    });
+  } catch (err) {
+    res.status(400).json({
+      message: 'Error updating new rule',
+      error: err.message,
       success: false,
     });
   }

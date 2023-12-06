@@ -17,4 +17,6 @@ RuleRouter.get('/', validator.query(rulesGetQuerySchema), (req, res) => {
 
 RuleRouter.post('/', validator.body(rulesPostSchema), RuleController.create);
 
+RuleRouter.put('/', validator.body(rulesPostSchema), RuleController.update);
+
 export { RuleRouter };
