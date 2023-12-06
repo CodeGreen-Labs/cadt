@@ -31,6 +31,7 @@ export const rulesGetQuerySchema = Joi.object()
     order: Joi.string().regex(genericSortColumnRegex),
     filter: Joi.string().regex(genericFilterRegex),
     onlyMarketplaceProjects: Joi.boolean(),
+    cat_id: Joi.string(),
   })
   .with('page', 'limit')
   .with('limit', 'page');

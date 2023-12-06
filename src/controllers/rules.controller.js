@@ -52,6 +52,7 @@ export const create = async (req, res) => {
     });
   }
 };
+
 export const findAll = async (req, res) => {
   try {
     let { page, limit, search, orgUid, columns, xls, filter, order } =
@@ -150,6 +151,24 @@ export const findAll = async (req, res) => {
     console.trace(error);
     res.status(400).json({
       message: 'Error retrieving projects',
+      error: error.message,
+      success: false,
+    });
+  }
+};
+
+export const findOne = async (req, res) => {
+  try {
+    res.json(
+      await Rule.findByPk(req.query.cat_id, {
+        include: Rule.getAssociatedModels().map((association) => {
+          return association.model;
+        }),
+      }),
+    );
+  } catch (error) {
+    res.status(400).json({
+      message: 'Cant find Unit.',
       error: error.message,
       success: false,
     });
