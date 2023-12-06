@@ -10,7 +10,9 @@ const RuleRouter = express.Router();
 import { rulesGetQuerySchema, rulesPostSchema } from '../../../validations';
 
 RuleRouter.get('/', validator.query(rulesGetQuerySchema), (req, res) => {
-  return RuleController.findAll(req, res);
+  return req.query.cat_id
+    ? RuleController.findOne(req, res)
+    : RuleController.findAll(req, res);
 });
 
 RuleRouter.post('/', validator.body(rulesPostSchema), RuleController.create);

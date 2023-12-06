@@ -1,7 +1,7 @@
 'use strict';
 
-import { Project, Unit, Staging } from './models/index.js';
 import { logger } from './config/logger.cjs';
+import { Project, Rule, Staging, Unit } from './models/index.js';
 
 const socketSubscriptions = {};
 
@@ -47,6 +47,17 @@ export const connection = (socket) => {
             socket.emit('change:units', data);
           });
           socketSubscriptions[socket.id].push('units');
+          callback('success');
+        } else {
+          callback('already subscribed');
+        }
+        break;
+      case 'rules':
+        if (!socketSubscriptions[socket.id].includes('rules')) {
+          Rule.changes.subscribe((data) => {
+            socket.emit('change:rules', data);
+          });
+          socketSubscriptions[socket.id].push('rules');
           callback('success');
         } else {
           callback('already subscribed');

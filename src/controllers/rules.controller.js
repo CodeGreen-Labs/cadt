@@ -1,9 +1,8 @@
 import _ from 'lodash';
 
 import { Sequelize } from 'sequelize';
-import { uuid as uuidv4 } from 'uuidv4';
 
-import { Project, Rule, Staging } from '../models';
+import { Rule, Staging } from '../models';
 
 import {
   genericFilterRegex,
@@ -33,10 +32,8 @@ export const create = async (req, res) => {
 
     const newRecord = _.cloneDeep(req.body);
 
-    const uuid = uuidv4();
-
     await Staging.create({
-      uuid,
+      uuid: newRecord.cat_id,
       action: 'INSERT',
       table: Rule.stagingTableName,
       data: JSON.stringify([newRecord]),
@@ -44,7 +41,7 @@ export const create = async (req, res) => {
 
     res.json({
       message: 'Rules staged successfully',
-      uuid,
+      uuid: newRecord.cat_id,
       success: true,
     });
   } catch (err) {
@@ -55,6 +52,7 @@ export const create = async (req, res) => {
     });
   }
 };
+
 export const findAll = async (req, res) => {
   try {
     let { page, limit, search, orgUid, columns, xls, filter, order } =
@@ -83,17 +81,17 @@ export const findAll = async (req, res) => {
       orgUid = undefined;
     }
 
-    const includes = Project.getAssociatedModels();
+    const includes = Rule.getAssociatedModels();
 
     if (columns) {
       // Remove any unsupported columns
       columns = columns.filter((col) =>
-        Project.defaultColumns
+        Rule.defaultColumns
           .concat(includes.map(formatModelAssociationName))
           .includes(col),
       );
     } else {
-      columns = Project.defaultColumns.concat(
+      columns = Rule.defaultColumns.concat(
         includes.map(formatModelAssociationName),
       );
     }
@@ -112,12 +110,7 @@ export const findAll = async (req, res) => {
     if (search) {
       // we cant add methodology2 to the fts table because you cant alter virtual tables without deleting the whole thig
       // so we need a migration that deletes the entire fts table and then repopulates it. This will be a new story
-      const ftsResults = await Project.fts(
-        search,
-        orgUid,
-        {},
-        columns.filter((col) => col !== 'methodology2'),
-      );
+      const ftsResults = await Rule.fts(search, orgUid, {});
       const mappedResults = ftsResults.rows.map((ftsResult) =>
         _.get(ftsResult, 'dataValues.warehouseProjectId'),
       );
@@ -137,14 +130,14 @@ export const findAll = async (req, res) => {
     };
 
     // default to DESC
-    let resultOrder = [['timeStaged', 'DESC']];
+    let resultOrder = [['createdAt', 'DESC']];
 
     if (order?.match(genericSortColumnRegex)) {
       const matches = order.match(genericSortColumnRegex);
       resultOrder = [[matches[1], matches[2]]];
     }
 
-    const results = await Project.findAndCountAll({
+    const results = await Rule.findAndCountAll({
       distinct: true,
       where,
       order: resultOrder,
@@ -158,6 +151,24 @@ export const findAll = async (req, res) => {
     console.trace(error);
     res.status(400).json({
       message: 'Error retrieving projects',
+      error: error.message,
+      success: false,
+    });
+  }
+};
+
+export const findOne = async (req, res) => {
+  try {
+    res.json(
+      await Rule.findByPk(req.query.cat_id, {
+        include: Rule.getAssociatedModels().map((association) => {
+          return association.model;
+        }),
+      }),
+    );
+  } catch (error) {
+    res.status(400).json({
+      message: 'Cant find Unit.',
       error: error.message,
       success: false,
     });
