@@ -24,6 +24,7 @@ class Rule extends Model {
   static stagingTableName = 'Rules';
   static changes = new rxjs.Subject();
   static validateImport = rulesUpdateSchema;
+  static defaultColumns = Object.keys(ModelTypes);
 
   static getAssociatedModels = () => [];
 
@@ -63,6 +64,22 @@ class Rule extends Model {
       await RuleMirror.upsert(values, mirrorOptions);
     });
     return super.upsert(values, options);
+  }
+
+  static async fts(searchStr, orgUid, pagination, columns = []) {
+    const dialect = sequelize.getDialect();
+
+    const handlerMap = {
+      sqlite: Rule.findAllSqliteFts,
+      mysql: Rule.findAllMySQLFts,
+    };
+
+    return handlerMap[dialect](
+      searchStr,
+      orgUid,
+      pagination,
+      columns.filter((col) => !['createdAt', 'updatedAt'].includes(col)),
+    );
   }
 
   static async generateChangeListFromStagedData(stagedData, comment, author) {
