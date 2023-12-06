@@ -180,15 +180,15 @@ export const migrations = [
   },
   {
     migration: CreateCredentialLevelTable,
-    name: 'create-credential-level-table',
+    name: 'create-credential-levels',
   },
   {
     migration: CreateWalletUsersTable,
-    name: 'create-wallet-users-table',
+    name: 'create-wallet-users',
   },
   {
     migration: CreateCredentialTable,
-    name: 'create-credential-table',
+    name: 'create-credentials',
   },
   {
     migration: CreateRules,
