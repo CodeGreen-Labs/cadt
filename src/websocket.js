@@ -63,6 +63,7 @@ export const connection = (socket) => {
           callback('already subscribed');
         }
         break;
+
       case 'credentials':
         if (!socketSubscriptions[socket.id].includes('credentials')) {
           Rule.changes.subscribe((data) => {
@@ -74,6 +75,7 @@ export const connection = (socket) => {
           callback('already subscribed');
         }
         break;
+
       case 'staging':
         if (!socketSubscriptions[socket.id].includes('staging')) {
           Staging.changes.subscribe((data) => {
