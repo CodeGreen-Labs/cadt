@@ -15,9 +15,9 @@ export const defaultConfig = {
     CADT_API_KEY: null,
     CHIA_NETWORK: 'mainnet',
     USE_DEVELOPMENT_MODE: false,
-    IS_GOVERNANCE_BODY: false,
-    DEFAULT_FEE: 300000000,
-    DEFAULT_COIN_AMOUNT: 300000000,
+    IS_GOVERNANCE_BODY: true,
+    DEFAULT_FEE: 0,
+    DEFAULT_COIN_AMOUNT: 0,
     CERTIFICATE_FOLDER_PATH: null,
     DATALAYER_FILE_SERVER_URL: null,
     AUTO_SUBSCRIBE_FILESTORE: false,
@@ -28,7 +28,6 @@ export const defaultConfig = {
     },
   },
   GOVERNANCE: {
-    GOVERNANCE_BODY_ID:
-      '23f6498e015ebcd7190c97df30c032de8deb5c8934fc1caa928bc310e2b8a57e',
+    GOVERNANCE_BODY_ID: null,
   },
 };

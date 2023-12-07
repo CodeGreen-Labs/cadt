@@ -2,10 +2,10 @@
 
 import _ from 'lodash';
 
-import { Organization, Unit, Project, Staging, Meta } from '../models';
 import datalayer from '../datalayer';
-import { formatModelAssociationName } from './model-utils.js';
+import { Meta, Organization, Project, Rule, Staging, Unit } from '../models';
 import { getConfig } from '../utils/config-loader';
+import { formatModelAssociationName } from './model-utils.js';
 
 const { IS_GOVERNANCE_BODY, READ_ONLY, USE_SIMULATOR, CHIA_NETWORK } =
   getConfig().APP;
@@ -250,4 +250,23 @@ export const assertNoActiveOfferFile = async () => {
   if (activeOfferFile) {
     throw new Error(`There is an active offer pending`);
   }
+};
+
+export const assertRuleRecordExists = async (catId, customMessage) => {
+  const record = await Rule.findByPk(catId, {
+    include: Rule.getAssociatedModels().map((association) => {
+      return {
+        model: association.model,
+        as: formatModelAssociationName(association),
+      };
+    }),
+  });
+  if (!record) {
+    throw new Error(
+      customMessage ||
+        `The unit record for the catId: ${catId} does not exist.`,
+    );
+  }
+
+  return record.dataValues;
 };
