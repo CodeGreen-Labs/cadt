@@ -7,7 +7,7 @@ const { Model } = Sequelize;
 
 import { safeMirrorDbHandler, sequelize } from '../../database';
 import { Organization, Staging } from '../../models';
-import { rulesUpdateSchema } from '../../validations/index';
+import { rulesPostSchema } from '../../validations/index';
 
 import dataLayer from '../../datalayer';
 import { keyValueToChangeList } from '../../utils/datalayer-utils';
@@ -23,7 +23,7 @@ import ModelTypes from './rules.modeltypes.cjs';
 class Rule extends Model {
   static stagingTableName = 'Rules';
   static changes = new rxjs.Subject();
-  static validateImport = rulesUpdateSchema;
+  static validateImport = rulesPostSchema;
   static defaultColumns = Object.keys(ModelTypes);
 
   static getAssociatedModels = () => [];
