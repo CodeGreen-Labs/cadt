@@ -26,7 +26,7 @@ RuleRouter.put('/', validator.body(rulesPostSchema), RuleController.update);
 RuleRouter.delete(
   '/',
   validator.body(rulesDeleteSchema),
-  RuleController.update,
+  RuleController.destroy,
 );
 
 export { RuleRouter };
