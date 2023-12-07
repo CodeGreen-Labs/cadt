@@ -1,4 +1,5 @@
 const Sequelize = require('sequelize');
+const shared = require('../shared.types.cjs');
 
 module.exports = {
   id: {
@@ -7,25 +8,25 @@ module.exports = {
     defaultValue: Sequelize.UUIDV4,
     primaryKey: true,
   },
-  level: {
+  credential_level: {
     type: Sequelize.INTEGER,
     allowNull: false,
     unique: true,
   },
-  name: {
+
+  document_id: {
     type: Sequelize.STRING,
-    allowNull: false,
-    unique: true,
+    require: true,
   },
-  description: {
+
+  expired_date: {
+    type: Sequelize.DATE,
+    require: true,
+  },
+
+  wallet_user_public_key: {
     type: Sequelize.STRING,
+    require: true,
   },
-  createdAt: {
-    type: Sequelize.DATE,
-    defaultValue: Sequelize.NOW,
-  },
-  updatedAt: {
-    type: Sequelize.DATE,
-    defaultValue: Sequelize.NOW,
-  },
+  ...shared,
 };
