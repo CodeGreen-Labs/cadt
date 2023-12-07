@@ -13,3 +13,4 @@ export * from './relatedProjects.validations';
 export * from './rules.validations';
 export * from './staging.validations';
 export * from './units.validations';
+export * from './credential.validations';
