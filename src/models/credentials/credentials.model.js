@@ -57,7 +57,10 @@ class Credential extends Model {
 
     const { orgUid } = values;
 
-    Credential.changes.next(['credentials', orgUid]);
+    Credential.changes.next([
+      this.stagingTableName.toLocaleLowerCase(),
+      orgUid,
+    ]);
 
     return createResult;
   }
@@ -72,7 +75,7 @@ class Credential extends Model {
       await CredentialMirror.destroy(mirrorOptions);
     });
 
-    Credential.changes.next(['credentials']);
+    Credential.changes.next([this.stagingTableName.toLocaleLowerCase()]);
     return super.destroy(options);
   }
 
@@ -88,7 +91,10 @@ class Credential extends Model {
 
     const { orgUid } = values;
 
-    Credential.changes.next(['credentials', orgUid]);
+    Credential.changes.next([
+      this.stagingTableName.toLocaleLowerCase(),
+      orgUid,
+    ]);
 
     return upsertResult;
   }

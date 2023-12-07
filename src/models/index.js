@@ -68,10 +68,6 @@ export const ModelKeys = {
   projectLocations: ProjectLocation,
   credential: Credential,
   credentials: Credential,
-  credentialLevel: CredentialLevel,
-  credentialLevels: CredentialLevel,
-  walletUser: WalletUser,
-  walletUsers: WalletUser,
   rule: Rule,
   rules: Rule,
 };

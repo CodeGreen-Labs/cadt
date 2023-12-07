@@ -6,7 +6,7 @@ import mysql from 'mysql2/promise';
 import { getConfig } from '../utils/config-loader';
 
 import { migrations } from './migrations';
-import { seeders } from './seeders';
+import { seeders as allSeeders } from './seeders';
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -76,7 +76,7 @@ export const sanitizeSqliteFtsQuery = (query) => {
   return query;
 };
 
-export const seedDb = async (db) => {
+export const seedDb = async (db, seeders = allSeeders) => {
   try {
     const queryInterface = db.getQueryInterface();
 
@@ -124,6 +124,16 @@ export const checkForMigrations = async (db) => {
         logger.error('Migration not completed', e);
       }
     }
+
+    const defaultSeeders = allSeeders.filter(
+      (seeder) =>
+        seeder.isDefault &&
+        notCompletedMigrations.find(
+          (migration) => migration.name === seeder.name,
+        ),
+    );
+
+    seedDb(db, defaultSeeders);
   } catch (error) {
     logger.error('Error checking for migrations', error);
   }
