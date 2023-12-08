@@ -1,12 +1,19 @@
 'use strict';
 
 import _ from 'lodash';
-
+import { Op } from 'sequelize';
 import datalayer from '../datalayer';
-import { Meta, Organization, Project, Rule, Staging, Unit } from '../models';
+import {
+  CredentialLevel,
+  Meta,
+  Organization,
+  Project,
+  Rule,
+  Staging,
+  Unit,
+} from '../models';
 import { getConfig } from '../utils/config-loader';
 import { formatModelAssociationName } from './model-utils.js';
-
 const { IS_GOVERNANCE_BODY, READ_ONLY, USE_SIMULATOR, CHIA_NETWORK } =
   getConfig().APP;
 
@@ -269,4 +276,23 @@ export const assertRuleRecordExists = async (catId, customMessage) => {
   }
 
   return record.dataValues;
+};
+
+export const assertCredentialLevelRecordExists = async (
+  levels,
+  customMessage,
+) => {
+  const uniqueLevels = Array.from(new Set(levels));
+
+  const recordsCount = await CredentialLevel.count({
+    raw: true,
+    where: { level: { [Op.in]: uniqueLevels } }, // Check if the 'level' column matches any value in the provided array
+  });
+
+  if (recordsCount !== uniqueLevels.length) {
+    throw new Error(customMessage || `The credential levels do not exist.`);
+  }
+
+  // Assuming you want to return an array of dataValues for each matching record
+  return recordsCount;
 };
