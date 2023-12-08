@@ -11,7 +11,6 @@ module.exports = {
   credential_level: {
     type: Sequelize.INTEGER,
     allowNull: false,
-    unique: true,
   },
 
   document_id: {

@@ -1,5 +1,11 @@
 import { uuid } from 'uuidv4';
-import { Credential, CredentialLevel, WalletUser, Staging } from '../models';
+import {
+  Credential,
+  CredentialLevel,
+  WalletUser,
+  Staging,
+  Organization,
+} from '../models';
 import {
   assertHomeOrgExists,
   assertNoPendingCommits,
@@ -24,10 +30,15 @@ export const create = async (req, res) => {
 
     const { credential_level, wallet_user, document_id, expired_date } =
       req.body;
+    const { orgUid } = await Organization.getHomeOrg();
+
+    const primaryKey = uuid();
 
     const stagingData = {
+      id: primaryKey,
       document_id,
       expired_date,
+      orgUid,
     };
 
     const levelExists = await CredentialLevel.findOne({
@@ -49,7 +60,7 @@ export const create = async (req, res) => {
     }
 
     await Staging.create({
-      uuid: uuid(),
+      uuid: primaryKey,
       action: 'INSERT',
       table: Credential.stagingTableName,
       data: JSON.stringify([stagingData]),

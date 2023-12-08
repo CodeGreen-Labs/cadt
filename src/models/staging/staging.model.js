@@ -10,6 +10,7 @@ import {
   Project,
   Rule,
   Unit,
+  Credential,
 } from '../../models';
 import { encodeHex, generateOffer } from '../../utils/datalayer-utils';
 const Op = Sequelize.Op;
@@ -495,21 +496,27 @@ class Staging extends Model {
       throw new Error('No records to send to DataLayer');
     }
 
-    const [unitsChangeList, projectsChangeList, rulesChangeList] =
-      await Promise.all([
-        Unit.generateChangeListFromStagedData(stagedRecords, comment, author),
-        Project.generateChangeListFromStagedData(
-          stagedRecords,
-          comment,
-          author,
-        ),
-        Rule.generateChangeListFromStagedData(stagedRecords, comment, author),
-      ]);
+    const [
+      unitsChangeList,
+      projectsChangeList,
+      rulesChangeList,
+      credentialChangeList,
+    ] = await Promise.all([
+      Unit.generateChangeListFromStagedData(stagedRecords, comment, author),
+      Project.generateChangeListFromStagedData(stagedRecords, comment, author),
+      Rule.generateChangeListFromStagedData(stagedRecords, comment, author),
+      Credential.generateChangeListFromStagedData(
+        stagedRecords,
+        comment,
+        author,
+      ),
+    ]);
 
     const unifiedChangeList = {
       ...projectsChangeList,
       ...unitsChangeList,
       ...rulesChangeList,
+      credentialChangeList,
       issuances: [
         ...unitsChangeList.issuances,
         ...projectsChangeList.issuances,
