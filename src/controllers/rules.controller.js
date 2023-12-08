@@ -192,6 +192,12 @@ export const update = async (req, res) => {
 
     const updatedRecord = _.cloneDeep(req.body);
 
+    await assertCredentialLevelRecordExists([
+      updatedRecord.kyc_receiving,
+      updatedRecord.kyc_retirement,
+      updatedRecord.kyc_sending,
+    ]);
+
     let stagedRecord = Array.isArray(updatedRecord)
       ? updatedRecord
       : [updatedRecord];
