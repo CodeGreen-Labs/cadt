@@ -23,9 +23,13 @@ module.exports = {
     require: true,
   },
 
-  wallet_user_public_key: {
+  wallet_user: {
     type: Sequelize.STRING,
     require: true,
+  },
+  commit_status: {
+    type: Sequelize.ENUM('staged', 'committing', 'committed'),
+    defaultValue: 'staged',
   },
   ...shared,
 };

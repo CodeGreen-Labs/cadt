@@ -6,10 +6,7 @@ module.exports = {
     required: true,
     allowNull: false,
   },
-  commit_status: {
-    type: Sequelize.ENUM('staged', 'committing', 'committed'),
-    defaultValue: 'staged',
-  },
+
   createdAt: {
     type: Sequelize.DATE,
     defaultValue: Sequelize.NOW,

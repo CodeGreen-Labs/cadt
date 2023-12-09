@@ -15,17 +15,14 @@ import {
 
 import dataLayer from '../../datalayer';
 import { keyValueToChangeList } from '../../utils/datalayer-utils';
+import { logger } from '../../config/logger.cjs';
+
 class Credential extends Model {
   static stagingTableName = 'Credentials';
   static changes = new rxjs.Subject();
   static defaultColumns = Object.keys(ModelTypes);
-  // static validateImport = projectsUpdateSchema;
 
   static getAssociatedModels = () => [
-    {
-      model: CredentialLevel,
-      pluralize: true,
-    },
     {
       model: WalletUser,
       pluralize: true,
@@ -33,25 +30,10 @@ class Credential extends Model {
   ];
 
   static associate() {
-    Credential.belongsTo(CredentialLevel, {
-      foreignKey: 'credentialLevelId',
-      as: 'credentialLevel',
-    });
-    Credential.belongsTo(WalletUser, {
-      foreignKey: 'walletUserId',
-      as: 'user',
-    });
-
-    safeMirrorDbHandler(() => {
-      CredentialMirror.belongsTo(CredentialLevel, {
-        foreignKey: 'credentialLevelId',
-        as: 'credentialLevel',
-      });
-      CredentialMirror.belongsTo(WalletUser, {
-        foreignKey: 'walletUserId',
-        as: 'user',
-      });
-    });
+    // Credential.belongsTo(WalletUser, {
+    //   foreignKey: 'wallet_user',
+    //   targetKey: 'public_key',
+    // });
   }
   static async create(values, options) {
     safeMirrorDbHandler(async () => {
@@ -89,42 +71,22 @@ class Credential extends Model {
   }
 
   static async upsert(values, options) {
-    const {
-      orgUid,
-      document_id,
-      expired_date,
-      credential_level,
-      wallet_user,
-      id,
-    } = values;
-
-    const createBody = {
-      id,
-      document_id,
-      expired_date,
-      credential_level: credential_level.level,
-      wallet_user_public_key: wallet_user.public_key,
-      orgUid,
-      commit_status: 'committed',
-    };
     safeMirrorDbHandler(async () => {
       const mirrorOptions = {
         ...options,
         transaction: options?.mirrorTransaction,
       };
-      await CredentialMirror.upsert(createBody, mirrorOptions);
+      await CredentialMirror.upsert(values, mirrorOptions);
     });
 
-    const existWalletUser = await WalletUser.findByPk(wallet_user.public_key);
-    if (!existWalletUser) {
-      await WalletUser.upsert(wallet_user);
-    }
-
-    const upsertResult = await super.upsert(createBody, options);
+    const upsertResult = await super.upsert(
+      { ...values, commit_status: 'committed' },
+      options,
+    );
 
     Credential.changes.next([
       this.stagingTableName.toLocaleLowerCase(),
-      orgUid,
+      values.org,
     ]);
 
     return upsertResult;
@@ -138,7 +100,7 @@ class Credential extends Model {
       );
 
     const primaryKeyMap = {
-      project: 'id',
+      credential: 'id',
     };
 
     const insertXslsSheets = createXlsFromSequelizeResults({
@@ -146,7 +108,6 @@ class Credential extends Model {
       model: Credential,
       toStructuredCsv: true,
     });
-
     const updateXslsSheets = createXlsFromSequelizeResults({
       rows: updateRecords,
       model: Credential,
@@ -184,7 +145,7 @@ class Credential extends Model {
       `{"author": "${author}"}`,
       isUpdateAuthor,
     );
-
+    logger.info('list', _.get(insertChangeList, 'credential', []));
     return {
       credentials: [
         ..._.get(insertChangeList, 'credential', []),
