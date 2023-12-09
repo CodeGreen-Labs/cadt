@@ -1,5 +1,4 @@
 import _ from 'lodash';
-
 import { Mutex } from 'async-mutex';
 import dotenv from 'dotenv';
 import { Sequelize } from 'sequelize';
@@ -291,7 +290,6 @@ const syncOrganizationAudit = async (organization) => {
     }
 
     // Organization not synced, sync it
-    logger.info(' ');
     logger.info(`Syncing Registry: ${_.get(organization, 'name')}`);
     logger.info(
       `${organization.name} is ${
@@ -332,19 +330,22 @@ const syncOrganizationAudit = async (organization) => {
       return;
     }
 
-    const comment = kvDiff.filter(
+    let comment = kvDiff.filter(
       (diff) =>
         (diff.key === encodeHex('comment') ||
           diff.key === `0x${encodeHex('comment')}`) &&
         diff.type === 'INSERT',
-    );
+    )?.[0];
 
-    const author = kvDiff.filter(
+    if (comment) comment = decodeHex(comment.value);
+
+    let author = kvDiff.filter(
       (diff) =>
         (diff.key === encodeHex('author') ||
           diff.key === `0x${encodeHex('author')}`) &&
         diff.type === 'INSERT',
-    );
+    )?.[0];
+    if (author) author = decodeHex(author.value);
 
     // This optimizedKvDiff will remove all the DELETES that have corresponding INSERTS
     // This is because we treat INSERTS as UPSERTS and we can save time and reduce DB thrashing
@@ -355,33 +356,47 @@ const syncOrganizationAudit = async (organization) => {
       for (const diff of optimizedKvDiff) {
         const key = decodeHex(diff.key);
         const modelKey = key.split('|')[0];
+        const stagingUuid = [
+          'unit',
+          'project',
+          'units',
+          'projects',
+          'rules',
+          'rule',
+          'credential',
+          'credentials',
+        ].includes(modelKey);
 
-        if (!['comment', 'author'].includes(key)) {
+        if (!stagingUuid) {
+          logger.info('Handle unauthorized data');
+
           const auditData = {
             orgUid: organization.orgUid,
             registryId: organization.registryId,
             rootHash: root2.root_hash,
             type: diff.type,
-            table: modelKey,
-            change: decodeHex(diff.value),
+            table: 'Unknown',
+            change: diff.value,
             onchainConfirmationTimeStamp: root2.timestamp,
-            comment: _.get(
-              JSON.parse(
-                decodeHex(_.get(comment, '[0].value', encodeHex('{}'))),
-              ),
-              'comment',
-              '',
-            ),
-            author: _.get(
-              JSON.parse(
-                decodeHex(_.get(author, '[0].value', encodeHex('{}'))),
-              ),
-              'author',
-              '',
-            ),
+            comment: comment || 'Unauthorized data',
+            author: author || 'Unknown',
           };
+          logger.info(`CREATE AUDIT: unauthorized data`);
+          await Audit.create(auditData, { transaction, mirrorTransaction });
+        } else {
+          if (!['comment', 'author'].includes(key)) {
+            const auditData = {
+              orgUid: organization.orgUid,
+              registryId: organization.registryId,
+              rootHash: root2.root_hash,
+              type: diff.type,
+              table: modelKey,
+              change: decodeHex(diff.value),
+              onchainConfirmationTimeStamp: root2.timestamp,
+              comment: comment,
+              author: author,
+            };
 
-          if (modelKey) {
             const record = JSON.parse(decodeHex(diff.value));
             const primaryKeyValue =
               record[ModelKeys[modelKey].primaryKeyAttributes[0]];
@@ -405,39 +420,28 @@ const syncOrganizationAudit = async (organization) => {
             }
 
             if (organization.orgUid === homeOrg?.orgUid) {
-              const stagingUuid = [
-                'unit',
-                'project',
-                'units',
-                'projects',
-                'rules',
-                'rule',
-              ].includes(modelKey)
-                ? primaryKeyValue
-                : undefined;
-
-              if (stagingUuid) {
-                afterCommitCallbacks.push(async () => {
-                  logger.info(`DELETING STAGING: ${stagingUuid}`);
-                  await Staging.destroy({
-                    where: { uuid: stagingUuid },
-                  });
+              afterCommitCallbacks.push(async () => {
+                logger.info(`DELETING STAGING: ${stagingUuid}`);
+                await Staging.destroy({
+                  where: { uuid: stagingUuid },
                 });
-              }
+              });
             }
-          }
 
-          // Create the Audit record
-          await Audit.create(auditData, { transaction, mirrorTransaction });
-          await Organization.update(
-            { registryHash: root2.root_hash },
-            {
-              where: { orgUid: organization.orgUid },
-              transaction,
-              mirrorTransaction,
-            },
-          );
+            logger.info(`CREATE AUDIT: ${stagingUuid}`);
+            await Audit.create(auditData, { transaction, mirrorTransaction });
+          }
         }
+
+        logger.info(`Update org root hash: ${root2.root_hash}`);
+        await Organization.update(
+          { registryHash: root2.root_hash },
+          {
+            where: { orgUid: organization.orgUid },
+            transaction,
+            mirrorTransaction,
+          },
+        );
       }
     };
 
