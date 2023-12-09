@@ -11,6 +11,7 @@ import {
   Rule,
   Unit,
   Credential,
+  WalletUser,
 } from '../../models';
 import { encodeHex, generateOffer } from '../../utils/datalayer-utils';
 const Op = Sequelize.Op;
@@ -30,6 +31,7 @@ import {
   createXlsFromSequelizeResults,
   transformFullXslsToChangeList,
 } from '../../utils/xls';
+import { logger } from '../../config/logger.cjs';
 
 class Staging extends Model {
   static changes = new rxjs.Subject();
@@ -501,11 +503,17 @@ class Staging extends Model {
       projectsChangeList,
       rulesChangeList,
       credentialChangeList,
+      walletUserChangeList,
     ] = await Promise.all([
       Unit.generateChangeListFromStagedData(stagedRecords, comment, author),
       Project.generateChangeListFromStagedData(stagedRecords, comment, author),
       Rule.generateChangeListFromStagedData(stagedRecords, comment, author),
       Credential.generateChangeListFromStagedData(
+        stagedRecords,
+        comment,
+        author,
+      ),
+      WalletUser.generateChangeListFromStagedData(
         stagedRecords,
         comment,
         author,
@@ -516,7 +524,8 @@ class Staging extends Model {
       ...projectsChangeList,
       ...unitsChangeList,
       ...rulesChangeList,
-      credentialChangeList,
+      ...credentialChangeList,
+      ...walletUserChangeList,
       issuances: [
         ...unitsChangeList.issuances,
         ...projectsChangeList.issuances,

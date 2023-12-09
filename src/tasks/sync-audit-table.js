@@ -365,18 +365,20 @@ const syncOrganizationAudit = async (organization) => {
           'rule',
           'credential',
           'credentials',
+          'walletUsers',
+          'walletUser',
         ].includes(modelKey);
 
         if (!stagingUuid) {
-          logger.info('Handle unauthorized data');
+          logger.info(`Handle unauthorized data : ${modelKey}`);
 
           const auditData = {
             orgUid: organization.orgUid,
             registryId: organization.registryId,
             rootHash: root2.root_hash,
             type: diff.type,
-            table: 'Unknown',
-            change: diff.value,
+            table: modelKey,
+            change: decodeHex(diff.value),
             onchainConfirmationTimeStamp: root2.timestamp,
             comment: comment || 'Unauthorized data',
             author: author || 'Unknown',

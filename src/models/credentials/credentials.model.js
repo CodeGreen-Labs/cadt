@@ -3,7 +3,7 @@ const { Model } = Sequelize;
 import _ from 'lodash';
 import * as rxjs from 'rxjs';
 import ModelTypes from './credentials.model.types.cjs';
-import { CredentialLevel, WalletUser } from '../';
+import { WalletUser } from '../';
 import { CredentialMirror } from './credentials.model.mirror';
 import { sequelize, safeMirrorDbHandler } from '../../database';
 import { Organization, Staging } from '../';
@@ -15,7 +15,6 @@ import {
 
 import dataLayer from '../../datalayer';
 import { keyValueToChangeList } from '../../utils/datalayer-utils';
-import { logger } from '../../config/logger.cjs';
 
 class Credential extends Model {
   static stagingTableName = 'Credentials';
@@ -145,7 +144,6 @@ class Credential extends Model {
       `{"author": "${author}"}`,
       isUpdateAuthor,
     );
-    logger.info('list', _.get(insertChangeList, 'credential', []));
     return {
       credentials: [
         ..._.get(insertChangeList, 'credential', []),

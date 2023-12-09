@@ -4,7 +4,6 @@ import Sequelize from 'sequelize';
 const { Model } = Sequelize;
 import { sequelize, safeMirrorDbHandler } from '../../database';
 import * as rxjs from 'rxjs';
-import { Credential } from '../';
 
 import ModelTypes from './wallet-users.model.types.cjs';
 import { WalletUserMirror } from './wallet-users.model.mirror';
@@ -84,6 +83,7 @@ class WalletUser extends Model {
       model: WalletUser,
       toStructuredCsv: true,
     });
+
     const updateXslsSheets = createXlsFromSequelizeResults({
       rows: updateRecords,
       model: WalletUser,
@@ -136,7 +136,7 @@ class WalletUser extends Model {
 
 WalletUser.init(ModelTypes, {
   sequelize,
-  modelName: 'WalletUser',
+  modelName: 'walletUser',
   tableName: 'wallet_users',
   timestamps: true,
 });

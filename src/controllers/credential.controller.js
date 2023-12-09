@@ -28,14 +28,15 @@ export const create = async (req, res) => {
     await assertHomeOrgExists();
     await assertNoPendingCommits();
 
-    const body = req.body;
+    const { wallet_user, credential_level, document_id, expired_date } =
+      req.body;
     const { orgUid } = await Organization.getHomeOrg();
 
     const credentialPrimaryKey = uuid();
     const walletUserPrimaryKey = uuid();
 
     const levelExists = await CredentialLevel.findOne({
-      where: { level: body.credential_level },
+      where: { level: credential_level },
     });
 
     if (!levelExists) {
@@ -48,16 +49,18 @@ export const create = async (req, res) => {
       table: Credential.stagingTableName,
       data: JSON.stringify([
         {
-          ...body,
           id: credentialPrimaryKey,
-          wallet_user: body.wallet_user.public_key,
+          credential_level,
+          document_id,
+          expired_date,
+          wallet_user: wallet_user.public_key,
           orgUid,
         },
       ]),
     });
 
     const walletUserExists = await WalletUser.findOne({
-      where: { public_key: body.wallet_user.public_key, orgUid },
+      where: { public_key: wallet_user.public_key, orgUid },
     });
 
     if (!walletUserExists) {
@@ -68,7 +71,7 @@ export const create = async (req, res) => {
         data: JSON.stringify([
           {
             id: walletUserPrimaryKey,
-            ...body.wallet_user,
+            ...wallet_user,
             orgUid,
           },
         ]),
@@ -79,7 +82,7 @@ export const create = async (req, res) => {
       message: 'Credential staged successfully',
       uuid,
       success: true,
-      data: body,
+      data: req.body,
     });
   } catch (error) {
     res.status(400).json({
