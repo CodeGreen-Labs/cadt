@@ -28,49 +28,58 @@ export const create = async (req, res) => {
     await assertHomeOrgExists();
     await assertNoPendingCommits();
 
-    const { credential_level, wallet_user, document_id, expired_date } =
-      req.body;
+    const body = req.body;
     const { orgUid } = await Organization.getHomeOrg();
 
-    const primaryKey = uuid();
-
-    const stagingData = {
-      id: primaryKey,
-      document_id,
-      expired_date,
-      orgUid,
-    };
+    const credentialPrimaryKey = uuid();
+    const walletUserPrimaryKey = uuid();
 
     const levelExists = await CredentialLevel.findOne({
-      where: { level: credential_level },
+      where: { level: body.credential_level },
     });
 
     if (!levelExists) {
       return res.status(400).send('Invalid level');
-    } else {
-      stagingData.credential_level = levelExists;
-    }
-
-    const userExists = await WalletUser.findByPk(wallet_user.public_key);
-    if (!userExists) {
-      const newWalletUser = await WalletUser.create(wallet_user);
-      stagingData.wallet_user = newWalletUser;
-    } else {
-      stagingData.wallet_user = userExists;
     }
 
     await Staging.create({
-      uuid: primaryKey,
+      uuid: credentialPrimaryKey,
       action: 'INSERT',
       table: Credential.stagingTableName,
-      data: JSON.stringify([stagingData]),
+      data: JSON.stringify([
+        {
+          ...body,
+          id: credentialPrimaryKey,
+          wallet_user: body.wallet_user.public_key,
+          orgUid,
+        },
+      ]),
     });
+
+    const walletUserExists = await WalletUser.findOne({
+      where: { public_key: body.wallet_user.public_key, orgUid },
+    });
+
+    if (!walletUserExists) {
+      await Staging.create({
+        uuid: walletUserPrimaryKey,
+        action: 'INSERT',
+        table: WalletUser.stagingTableName,
+        data: JSON.stringify([
+          {
+            id: walletUserPrimaryKey,
+            ...body.wallet_user,
+            orgUid,
+          },
+        ]),
+      });
+    }
 
     res.json({
       message: 'Credential staged successfully',
       uuid,
       success: true,
-      data: stagingData,
+      data: body,
     });
   } catch (error) {
     res.status(400).json({
