@@ -364,7 +364,7 @@ const syncOrganizationAudit = async (organization) => {
           where: { table: field },
           order: [['id', 'DESC']],
         });
-        return latestEntry?.change?.[field] || latestEntry?.change || '';
+        return latestEntry[field] || '';
       };
       let latestComment = comment ? JSON.parse(comment)?.comment : null;
       if (!latestComment) {
