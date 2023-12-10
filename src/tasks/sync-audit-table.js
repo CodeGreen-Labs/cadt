@@ -366,12 +366,12 @@ const syncOrganizationAudit = async (organization) => {
         });
         return latestEntry?.change?.[field] || latestEntry?.change || '';
       };
-      let latestComment = JSON.parse(comment)?.comment;
+      let latestComment = comment ? JSON.parse(comment)?.comment : null;
       if (!latestComment) {
         latestComment = await getLatestAuditEntry('comment');
       }
 
-      let latestAuthor = JSON.parse(author)?.author;
+      let latestAuthor = comment ? JSON.parse(author)?.author : null;
       if (!latestAuthor) {
         latestAuthor = await getLatestAuditEntry('author');
       }
