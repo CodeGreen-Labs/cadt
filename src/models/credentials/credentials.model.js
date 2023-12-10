@@ -85,7 +85,7 @@ class Credential extends Model {
 
     Credential.changes.next([
       this.stagingTableName.toLocaleLowerCase(),
-      values.org,
+      values.orgUid,
     ]);
 
     return upsertResult;
