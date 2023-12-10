@@ -352,67 +352,76 @@ const syncOrganizationAudit = async (organization) => {
     // by not processing the DELETE for that record.
     const optimizedKvDiff = optimizeAndSortKvDiff(kvDiff);
 
+    const createAuditData = async (
+      diff,
+      modelKey,
+      value,
+      transaction,
+      mirrorTransaction,
+    ) => {
+      const getLatestAuditEntry = async (field) => {
+        const latestEntry = await Audit.findOne({
+          where: { table: field },
+          order: [['id', 'DESC']],
+        });
+        return latestEntry?.change?.[field] || latestEntry?.change || '';
+      };
+      let latestComment = JSON.parse(comment)?.comment;
+      if (!latestComment) {
+        latestComment = await getLatestAuditEntry('comment');
+      }
+
+      let latestAuthor = JSON.parse(author)?.author;
+      if (!latestAuthor) {
+        latestAuthor = await getLatestAuditEntry('author');
+      }
+
+      const formatAuditField = (field) =>
+        typeof field === 'string' ? field : JSON.stringify(field);
+
+      const auditData = {
+        orgUid: organization.orgUid,
+        registryId: organization.registryId,
+        rootHash: root2.root_hash,
+        type: diff.type,
+        table: modelKey,
+        change: value,
+        onchainConfirmationTimeStamp: root2.timestamp,
+        comment: formatAuditField(latestComment),
+        author: formatAuditField(latestAuthor),
+      };
+
+      logger.info(`CREATE AUDIT: ${modelKey}`);
+      await Audit.create(auditData, { transaction, mirrorTransaction });
+    };
+
+    const isValidModelKey = (key) =>
+      [
+        'unit',
+        'project',
+        'units',
+        'projects',
+        'rules',
+        'rule',
+        'credential',
+        'credentials',
+        'walletUsers',
+        'walletUser',
+      ].includes(key);
+
+    const decodeDiff = (diff) => {
+      const key = decodeHex(diff.key).split('|')[0];
+      const value = decodeHex(diff.value);
+      return [key, value];
+    };
+
     const updateTransaction = async (transaction, mirrorTransaction) => {
       for (const diff of optimizedKvDiff) {
-        const key = decodeHex(diff.key);
-        const value = decodeHex(diff.value);
-
+        const [key, value] = decodeDiff(diff);
         const modelKey = key.split('|')[0];
-        const validModelKey = [
-          'unit',
-          'project',
-          'units',
-          'projects',
-          'rules',
-          'rule',
-          'credential',
-          'credentials',
-          'walletUsers',
-          'walletUser',
-        ].includes(modelKey);
+        const validModelKey = isValidModelKey(key);
 
-        if (!validModelKey) {
-          logger.info(`Handle unauthorized data : ${modelKey}`);
-
-          const auditData = {
-            orgUid: organization.orgUid,
-            registryId: organization.registryId,
-            rootHash: root2.root_hash,
-            type: diff.type,
-            table: modelKey,
-            change: value,
-            onchainConfirmationTimeStamp: root2.timestamp,
-            comment: 'Unauthorized data',
-            author: 'Unknown',
-          };
-          logger.info(`CREATE AUDIT: unauthorized data`);
-          await Audit.create(auditData, { transaction, mirrorTransaction });
-        } else {
-          const latestComment = await Audit.findOne({
-            where: {
-              table: 'comment',
-            },
-            order: [['id', 'DESC']],
-          });
-          const latestAuthor = await Audit.findOne({
-            where: {
-              table: 'author',
-            },
-            order: [['id', 'DESC']],
-          });
-
-          const auditData = {
-            orgUid: organization.orgUid,
-            registryId: organization.registryId,
-            rootHash: root2.root_hash,
-            type: diff.type,
-            table: modelKey,
-            change: value,
-            onchainConfirmationTimeStamp: root2.timestamp,
-            comment: comment || JSON.stringify(latestComment.change),
-            author: author || JSON.stringify(latestAuthor.change),
-          };
-
+        if (validModelKey) {
           const record = JSON.parse(value);
           const primaryKeyValue =
             record[ModelKeys[modelKey].primaryKeyAttributes[0]];
@@ -442,12 +451,20 @@ const syncOrganizationAudit = async (organization) => {
               });
             });
           }
-
-          logger.info(`CREATE AUDIT: ${primaryKeyValue}`);
-          await Audit.create(auditData, { transaction, mirrorTransaction });
         }
 
-        logger.info(`Update org root hash: ${root2.root_hash}`);
+        logger.info(
+          `CREATE AUDIT: ${validModelKey ? 'Unauthorized data' : `${key}`}`,
+        );
+        await createAuditData(
+          diff,
+          modelKey,
+          value,
+          transaction,
+          mirrorTransaction,
+        );
+
+        logger.info(`Update ORG ROOT HASH: ${root2.root_hash}`);
         await Organization.update(
           { registryHash: root2.root_hash },
           {
