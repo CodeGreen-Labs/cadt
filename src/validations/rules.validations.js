@@ -40,11 +40,6 @@ export const rulesPostSchema = Joi.object({
   ...ruleBaseSchema,
 });
 
-export const rulesUpdateSchema = Joi.object({
-  cat_id: Joi.string().required(),
-  ...ruleBaseSchema,
-});
-
 export const rulesDeleteSchema = Joi.object({
   cat_id: Joi.string().required(),
 });

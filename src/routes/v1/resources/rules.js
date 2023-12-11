@@ -7,7 +7,11 @@ import { RuleController } from '../../../controllers';
 const validator = joiExpress.createValidator({ passError: true });
 const RuleRouter = express.Router();
 
-import { rulesGetQuerySchema, rulesPostSchema } from '../../../validations';
+import {
+  rulesDeleteSchema,
+  rulesGetQuerySchema,
+  rulesPostSchema,
+} from '../../../validations';
 
 RuleRouter.get('/', validator.query(rulesGetQuerySchema), (req, res) => {
   return req.query.cat_id
@@ -18,5 +22,11 @@ RuleRouter.get('/', validator.query(rulesGetQuerySchema), (req, res) => {
 RuleRouter.post('/', validator.body(rulesPostSchema), RuleController.create);
 
 RuleRouter.put('/', validator.body(rulesPostSchema), RuleController.update);
+
+RuleRouter.delete(
+  '/',
+  validator.body(rulesDeleteSchema),
+  RuleController.destroy,
+);
 
 export { RuleRouter };

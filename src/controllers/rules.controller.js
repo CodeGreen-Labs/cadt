@@ -210,3 +210,30 @@ export const update = async (req, res) => {
     });
   }
 };
+
+export const destroy = async (req, res) => {
+  try {
+    await assertIfReadOnlyMode();
+    await assertHomeOrgExists();
+    await assertNoPendingCommits();
+    await assertRuleRecordExists(req.body.cat_id);
+
+    const stagedData = {
+      uuid: req.body.cat_id,
+      action: 'DELETE',
+      table: Rule.stagingTableName,
+    };
+
+    await Staging.upsert(stagedData);
+    res.json({
+      message: 'Rule deleted successfully',
+      success: true,
+    });
+  } catch (err) {
+    res.status(400).json({
+      message: 'Error deleting rule',
+      error: err.message,
+      success: false,
+    });
+  }
+};
