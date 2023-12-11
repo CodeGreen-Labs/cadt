@@ -1,7 +1,7 @@
 'use strict';
 
 import { logger } from './config/logger.cjs';
-import { Project, Rule, Staging, Unit } from './models/index.js';
+import { Project, Rule, Staging, Unit, Credential } from './models/index.js';
 
 const socketSubscriptions = {};
 
@@ -66,7 +66,7 @@ export const connection = (socket) => {
 
       case 'credentials':
         if (!socketSubscriptions[socket.id].includes('credentials')) {
-          Rule.changes.subscribe((data) => {
+          Credential.changes.subscribe((data) => {
             socket.emit('change:credentials', data);
           });
           socketSubscriptions[socket.id].push('credentials');

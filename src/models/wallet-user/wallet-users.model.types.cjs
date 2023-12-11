@@ -1,10 +1,16 @@
 const Sequelize = require('sequelize');
+const shared = require('../shared.types.cjs');
 
 module.exports = {
+  id: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    defaultValue: Sequelize.UUIDV4,
+    primaryKey: true,
+  },
   public_key: {
     type: Sequelize.STRING,
     require: true,
-    primaryKey: true,
   },
   ein: {
     type: Sequelize.STRING,
@@ -22,12 +28,5 @@ module.exports = {
     type: Sequelize.STRING,
     require: true,
   },
-  createdAt: {
-    type: Sequelize.DATE,
-    defaultValue: Sequelize.NOW,
-  },
-  updatedAt: {
-    type: Sequelize.DATE,
-    defaultValue: Sequelize.NOW,
-  },
+  ...shared,
 };

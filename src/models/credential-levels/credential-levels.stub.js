@@ -6,6 +6,7 @@ export default [
     level: 1,
     name: 'Basic Credential',
     createdAt: new Date(),
+    updatedAt: new Date(),
   },
 
   {
@@ -13,5 +14,6 @@ export default [
     level: 2,
     name: 'Super Credential',
     createdAt: new Date(),
+    updatedAt: new Date(),
   },
 ];

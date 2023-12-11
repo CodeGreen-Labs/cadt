@@ -1,5 +1,11 @@
 import { uuid } from 'uuidv4';
-import { Credential, CredentialLevel, WalletUser, Staging } from '../models';
+import {
+  Credential,
+  CredentialLevel,
+  WalletUser,
+  Staging,
+  Organization,
+} from '../models';
 import {
   assertHomeOrgExists,
   assertNoPendingCommits,
@@ -22,13 +28,12 @@ export const create = async (req, res) => {
     await assertHomeOrgExists();
     await assertNoPendingCommits();
 
-    const { credential_level, wallet_user, document_id, expired_date } =
+    const { wallet_user, credential_level, document_id, expired_date } =
       req.body;
+    const { orgUid } = await Organization.getHomeOrg();
 
-    const stagingData = {
-      document_id,
-      expired_date,
-    };
+    const credentialPrimaryKey = uuid();
+    const walletUserPrimaryKey = uuid();
 
     const levelExists = await CredentialLevel.findOne({
       where: { level: credential_level },
@@ -36,30 +41,48 @@ export const create = async (req, res) => {
 
     if (!levelExists) {
       return res.status(400).send('Invalid level');
-    } else {
-      stagingData.credential_level = levelExists;
-    }
-
-    const userExists = await WalletUser.findByPk(wallet_user.public_key);
-    if (!userExists) {
-      const newWalletUser = await WalletUser.create(wallet_user);
-      stagingData.wallet_user = newWalletUser;
-    } else {
-      stagingData.wallet_user = userExists;
     }
 
     await Staging.create({
-      uuid: uuid(),
+      uuid: credentialPrimaryKey,
       action: 'INSERT',
       table: Credential.stagingTableName,
-      data: JSON.stringify([stagingData]),
+      data: JSON.stringify([
+        {
+          id: credentialPrimaryKey,
+          credential_level,
+          document_id,
+          expired_date,
+          wallet_user: wallet_user.public_key,
+          orgUid,
+        },
+      ]),
     });
+
+    const walletUserExists = await WalletUser.findOne({
+      where: { public_key: wallet_user.public_key, orgUid },
+    });
+
+    if (!walletUserExists) {
+      await Staging.create({
+        uuid: walletUserPrimaryKey,
+        action: 'INSERT',
+        table: WalletUser.stagingTableName,
+        data: JSON.stringify([
+          {
+            id: walletUserPrimaryKey,
+            ...wallet_user,
+            orgUid,
+          },
+        ]),
+      });
+    }
 
     res.json({
       message: 'Credential staged successfully',
       uuid,
       success: true,
-      data: stagingData,
+      data: req.body,
     });
   } catch (error) {
     res.status(400).json({

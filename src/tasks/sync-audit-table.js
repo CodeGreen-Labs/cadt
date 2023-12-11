@@ -1,5 +1,4 @@
 import _ from 'lodash';
-
 import { Mutex } from 'async-mutex';
 import dotenv from 'dotenv';
 import { Sequelize } from 'sequelize';
@@ -291,7 +290,6 @@ const syncOrganizationAudit = async (organization) => {
     }
 
     // Organization not synced, sync it
-    logger.info(' ');
     logger.info(`Syncing Registry: ${_.get(organization, 'name')}`);
     logger.info(
       `${organization.name} is ${
@@ -332,112 +330,159 @@ const syncOrganizationAudit = async (organization) => {
       return;
     }
 
-    const comment = kvDiff.filter(
+    let comment = kvDiff.filter(
       (diff) =>
         (diff.key === encodeHex('comment') ||
           diff.key === `0x${encodeHex('comment')}`) &&
         diff.type === 'INSERT',
-    );
+    )?.[0];
 
-    const author = kvDiff.filter(
+    if (comment) comment = decodeHex(comment.value);
+
+    let author = kvDiff.filter(
       (diff) =>
         (diff.key === encodeHex('author') ||
           diff.key === `0x${encodeHex('author')}`) &&
         diff.type === 'INSERT',
-    );
+    )?.[0];
+    if (author) author = decodeHex(author.value);
 
     // This optimizedKvDiff will remove all the DELETES that have corresponding INSERTS
     // This is because we treat INSERTS as UPSERTS and we can save time and reduce DB thrashing
     // by not processing the DELETE for that record.
     const optimizedKvDiff = optimizeAndSortKvDiff(kvDiff);
 
+    const createAuditData = async (
+      diff,
+      modelKey,
+      value,
+      transaction,
+      mirrorTransaction,
+      isValidModelKey,
+    ) => {
+      const getLatestAuditEntry = async (field) => {
+        const latestEntry = await Audit.findOne({
+          where: { table: field },
+          order: [['id', 'DESC']],
+        });
+        return latestEntry[field] || '';
+      };
+      let latestComment = comment
+        ? JSON.parse(comment)?.comment
+        : isValidModelKey
+        ? null
+        : 'Unauthorize data';
+      if (!latestComment) {
+        latestComment = await getLatestAuditEntry('comment');
+      }
+
+      let latestAuthor = author
+        ? JSON.parse(author)?.author
+        : isValidModelKey
+        ? null
+        : 'Unknown';
+      if (!latestAuthor) {
+        latestAuthor = await getLatestAuditEntry('author');
+      }
+
+      const formatAuditField = (field) =>
+        typeof field === 'string' ? field : JSON.stringify(field);
+
+      const auditData = {
+        orgUid: organization.orgUid,
+        registryId: organization.registryId,
+        rootHash: root2.root_hash,
+        type: diff.type,
+        table: modelKey,
+        change: value,
+        onchainConfirmationTimeStamp: root2.timestamp,
+        comment: formatAuditField(latestComment),
+        author: formatAuditField(latestAuthor),
+      };
+
+      logger.info(`CREATE AUDIT: ${modelKey}`);
+      await Audit.create(auditData, { transaction, mirrorTransaction });
+    };
+
+    const isValidModelKey = (key) =>
+      [
+        'unit',
+        'project',
+        'units',
+        'projects',
+        'rules',
+        'rule',
+        'credential',
+        'credentials',
+        'walletUsers',
+        'walletUser',
+      ].includes(key);
+
+    const decodeDiff = (diff) => {
+      const key = decodeHex(diff.key).split('|')[0];
+      const value = decodeHex(diff.value);
+      return [key, value];
+    };
+
     const updateTransaction = async (transaction, mirrorTransaction) => {
       for (const diff of optimizedKvDiff) {
-        const key = decodeHex(diff.key);
+        const [key, value] = decodeDiff(diff);
         const modelKey = key.split('|')[0];
+        const validModelKey = isValidModelKey(key);
 
-        if (!['comment', 'author'].includes(key)) {
-          const auditData = {
-            orgUid: organization.orgUid,
-            registryId: organization.registryId,
-            rootHash: root2.root_hash,
-            type: diff.type,
-            table: modelKey,
-            change: decodeHex(diff.value),
-            onchainConfirmationTimeStamp: root2.timestamp,
-            comment: _.get(
-              JSON.parse(
-                decodeHex(_.get(comment, '[0].value', encodeHex('{}'))),
-              ),
-              'comment',
-              '',
-            ),
-            author: _.get(
-              JSON.parse(
-                decodeHex(_.get(author, '[0].value', encodeHex('{}'))),
-              ),
-              'author',
-              '',
-            ),
-          };
+        if (validModelKey) {
+          const record = JSON.parse(value);
+          const primaryKeyValue =
+            record[ModelKeys[modelKey].primaryKeyAttributes[0]];
 
-          if (modelKey) {
-            const record = JSON.parse(decodeHex(diff.value));
-            const primaryKeyValue =
-              record[ModelKeys[modelKey].primaryKeyAttributes[0]];
-
-            if (diff.type === 'INSERT') {
-              logger.info(`UPSERTING: ${modelKey} - ${primaryKeyValue}`);
-              await ModelKeys[modelKey].upsert(record, {
-                transaction,
-                mirrorTransaction,
-              });
-            } else if (diff.type === 'DELETE') {
-              logger.info(`DELETING: ${modelKey} - ${primaryKeyValue}`);
-              await ModelKeys[modelKey].destroy({
-                where: {
-                  [ModelKeys[modelKey].primaryKeyAttributes[0]]:
-                    primaryKeyValue,
-                },
-                transaction,
-                mirrorTransaction,
-              });
-            }
-
-            if (organization.orgUid === homeOrg?.orgUid) {
-              const stagingUuid = [
-                'unit',
-                'project',
-                'units',
-                'projects',
-                'rules',
-                'rule',
-              ].includes(modelKey)
-                ? primaryKeyValue
-                : undefined;
-
-              if (stagingUuid) {
-                afterCommitCallbacks.push(async () => {
-                  logger.info(`DELETING STAGING: ${stagingUuid}`);
-                  await Staging.destroy({
-                    where: { uuid: stagingUuid },
-                  });
-                });
-              }
-            }
-          }
-
-          // Create the Audit record
-          await Audit.create(auditData, { transaction, mirrorTransaction });
-          await Organization.update(
-            { registryHash: root2.root_hash },
-            {
-              where: { orgUid: organization.orgUid },
+          if (diff.type === 'INSERT') {
+            logger.info(`UPSERTING: ${modelKey} - ${primaryKeyValue}`);
+            await ModelKeys[modelKey].upsert(record, {
               transaction,
               mirrorTransaction,
-            },
-          );
+            });
+          } else if (diff.type === 'DELETE') {
+            logger.info(`DELETING: ${modelKey} - ${primaryKeyValue}`);
+            await ModelKeys[modelKey].destroy({
+              where: {
+                [ModelKeys[modelKey].primaryKeyAttributes[0]]: primaryKeyValue,
+              },
+              transaction,
+              mirrorTransaction,
+            });
+          }
+
+          if (organization.orgUid === homeOrg?.orgUid) {
+            afterCommitCallbacks.push(async () => {
+              logger.info(`DELETING STAGING: ${primaryKeyValue}`);
+              await Staging.destroy({
+                where: { uuid: primaryKeyValue },
+              });
+            });
+          }
         }
+
+        logger.info(
+          `CREATE AUDIT: ${validModelKey ? 'Unauthorized data' : `${key}`}`,
+        );
+        await createAuditData(
+          diff,
+          modelKey,
+          value,
+          transaction,
+          mirrorTransaction,
+          isValidModelKey,
+        );
+
+        logger.info(`Update ORG ROOT HASH: ${root2.root_hash}`);
+        await Organization.update(
+          { registryHash: root2.root_hash },
+          {
+            where: { orgUid: organization.orgUid },
+            transaction,
+            mirrorTransaction,
+          },
+        );
       }
     };
 

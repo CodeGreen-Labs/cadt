@@ -12,6 +12,7 @@ safeMirrorDbHandler(() => {
   WalletUserMirror.init(ModelTypes, {
     sequelize: sequelizeMirror,
     modelName: 'walletUser',
+    tableName: 'wallet_users',
     timestamps: true,
     timezone: '+00:00',
     define: {

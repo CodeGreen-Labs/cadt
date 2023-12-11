@@ -1,8 +1,6 @@
 import Joi from 'joi';
 
 const createCredentialSchema = Joi.object({
-  name: Joi.string().required(),
-
   document_id: Joi.string().required(),
 
   expired_date: Joi.date().required(),
