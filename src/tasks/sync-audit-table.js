@@ -358,6 +358,7 @@ const syncOrganizationAudit = async (organization) => {
       value,
       transaction,
       mirrorTransaction,
+      isValidModelKey,
     ) => {
       const getLatestAuditEntry = async (field) => {
         const latestEntry = await Audit.findOne({
@@ -366,12 +367,20 @@ const syncOrganizationAudit = async (organization) => {
         });
         return latestEntry[field] || '';
       };
-      let latestComment = comment ? JSON.parse(comment)?.comment : null;
+      let latestComment = comment
+        ? JSON.parse(comment)?.comment
+        : isValidModelKey
+        ? null
+        : 'Unauthorize data';
       if (!latestComment) {
         latestComment = await getLatestAuditEntry('comment');
       }
 
-      let latestAuthor = comment ? JSON.parse(author)?.author : null;
+      let latestAuthor = author
+        ? JSON.parse(author)?.author
+        : isValidModelKey
+        ? null
+        : 'Unknown';
       if (!latestAuthor) {
         latestAuthor = await getLatestAuditEntry('author');
       }
@@ -462,6 +471,7 @@ const syncOrganizationAudit = async (organization) => {
           value,
           transaction,
           mirrorTransaction,
+          isValidModelKey,
         );
 
         logger.info(`Update ORG ROOT HASH: ${root2.root_hash}`);
