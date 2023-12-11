@@ -303,7 +303,6 @@ const syncOrganizationAudit = async (organization) => {
 
     const root1 = _.get(rootHistory, `[${historyIndex}]`);
     const root2 = _.get(rootHistory, `[${historyIndex + 1}]`);
-
     if (!_.get(root2, 'confirmed')) {
       logger.info(
         `Waiting for the latest root for ${organization.name} to confirm`,
@@ -316,7 +315,6 @@ const syncOrganizationAudit = async (organization) => {
       root1.root_hash,
       root2.root_hash,
     );
-
     if (_.isEmpty(kvDiff)) {
       const warningMsg = [
         `No data found for ${organization.name} in the current datalayer generation.`,
@@ -359,13 +357,14 @@ const syncOrganizationAudit = async (organization) => {
       transaction,
       mirrorTransaction,
       isValidModelKey,
+      sqlError,
     ) => {
       const getLatestAuditEntry = async (field) => {
         const latestEntry = await Audit.findOne({
           where: { table: field },
           order: [['id', 'DESC']],
         });
-        return latestEntry[field] || '';
+        return latestEntry?.[field] || '';
       };
       let latestComment = comment
         ? JSON.parse(comment)?.comment
@@ -385,8 +384,14 @@ const syncOrganizationAudit = async (organization) => {
         latestAuthor = await getLatestAuditEntry('author');
       }
 
-      const formatAuditField = (field) =>
-        typeof field === 'string' ? field : JSON.stringify(field);
+      const formatAuditField = (field, sqlError) => {
+        const commitStr =
+          typeof field === 'string' ? field : JSON.stringify(field);
+
+        return sqlError
+          ? `${commitStr} | With sql error: ${sqlError}`
+          : `${commitStr}`;
+      };
 
       const auditData = {
         orgUid: organization.orgUid,
@@ -396,7 +401,7 @@ const syncOrganizationAudit = async (organization) => {
         table: modelKey,
         change: value,
         onchainConfirmationTimeStamp: root2.timestamp,
-        comment: formatAuditField(latestComment),
+        comment: formatAuditField(latestComment, sqlError),
         author: formatAuditField(latestAuthor),
       };
 
@@ -429,29 +434,33 @@ const syncOrganizationAudit = async (organization) => {
         const [key, value] = decodeDiff(diff);
         const modelKey = key.split('|')[0];
         const validModelKey = isValidModelKey(key);
-
+        let sqlError;
         if (validModelKey) {
           const record = JSON.parse(value);
           const primaryKeyValue =
             record[ModelKeys[modelKey].primaryKeyAttributes[0]];
-
-          if (diff.type === 'INSERT') {
-            logger.info(`UPSERTING: ${modelKey} - ${primaryKeyValue}`);
-            await ModelKeys[modelKey].upsert(record, {
-              transaction,
-              mirrorTransaction,
-            });
-          } else if (diff.type === 'DELETE') {
-            logger.info(`DELETING: ${modelKey} - ${primaryKeyValue}`);
-            await ModelKeys[modelKey].destroy({
-              where: {
-                [ModelKeys[modelKey].primaryKeyAttributes[0]]: primaryKeyValue,
-              },
-              transaction,
-              mirrorTransaction,
-            });
+          try {
+            if (diff.type === 'INSERT') {
+              logger.info(`UPSERTING: ${modelKey} - ${primaryKeyValue}`);
+              await ModelKeys[modelKey].upsert(record, {
+                transaction,
+                mirrorTransaction,
+              });
+            } else if (diff.type === 'DELETE') {
+              logger.info(`DELETING: ${modelKey} - ${primaryKeyValue}`);
+              await ModelKeys[modelKey].destroy({
+                where: {
+                  [ModelKeys[modelKey].primaryKeyAttributes[0]]:
+                    primaryKeyValue,
+                },
+                transaction,
+                mirrorTransaction,
+              });
+            }
+          } catch (error) {
+            logger.error(`Error parsing ${key}`, error);
+            sqlError = error;
           }
-
           if (organization.orgUid === homeOrg?.orgUid) {
             afterCommitCallbacks.push(async () => {
               logger.info(`DELETING STAGING: ${primaryKeyValue}`);
@@ -472,6 +481,7 @@ const syncOrganizationAudit = async (organization) => {
           transaction,
           mirrorTransaction,
           isValidModelKey,
+          sqlError,
         );
 
         logger.info(`Update ORG ROOT HASH: ${root2.root_hash}`);
