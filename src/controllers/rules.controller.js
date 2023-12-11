@@ -17,6 +17,7 @@ import {
 } from '../utils/helpers';
 
 import {
+  assertCredentialLevelRecordExists,
   assertHomeOrgExists,
   assertIfReadOnlyMode,
   assertNoPendingCommits,
@@ -32,6 +33,12 @@ export const create = async (req, res) => {
     await assertNoPendingCommits();
 
     const newRecord = _.cloneDeep(req.body);
+
+    await assertCredentialLevelRecordExists([
+      newRecord.kyc_receiving,
+      newRecord.kyc_retirement,
+      newRecord.kyc_sending,
+    ]);
 
     await Staging.create({
       uuid: newRecord.cat_id,
@@ -184,6 +191,12 @@ export const update = async (req, res) => {
     await assertRuleRecordExists(req.body.cat_id);
 
     const updatedRecord = _.cloneDeep(req.body);
+
+    await assertCredentialLevelRecordExists([
+      updatedRecord.kyc_receiving,
+      updatedRecord.kyc_retirement,
+      updatedRecord.kyc_sending,
+    ]);
 
     let stagedRecord = Array.isArray(updatedRecord)
       ? updatedRecord
