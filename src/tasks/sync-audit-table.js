@@ -390,11 +390,6 @@ const syncOrganizationAudit = async (organization) => {
         return typeof field === 'string' ? field : JSON.stringify(field);
       };
 
-        return sqlError
-          ? `${commitStr} | With sql error: ${sqlError}`
-          : `${commitStr}`;
-      };
-
       const auditData = {
         orgUid: organization.orgUid,
         registryId: organization.registryId,
@@ -405,7 +400,7 @@ const syncOrganizationAudit = async (organization) => {
           sqlError ? { ...JSON.parse(value), error: sqlError } : value,
         ),
         onchainConfirmationTimeStamp: root2.timestamp,
-        comment: formatAuditField(latestComment, sqlError),
+        comment: formatAuditField(latestComment),
         author: formatAuditField(latestAuthor),
       };
 
