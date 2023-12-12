@@ -69,16 +69,17 @@ class WalletUser extends Model {
 
     const { id, ...data } = values;
 
-    const exist = super.findByPk(id);
-
+    const exist = await super.findByPk(id);
     let result;
 
     if (exist) {
-      result = super.update({ ...data }, { ...options, where: { id: id } });
+      result = await super.update(
+        { ...data },
+        { ...options, where: { id: id } },
+      );
     } else {
-      result = super.upsert(data, options);
+      result = await super.upsert(data, options);
     }
-
     WalletUser.changes.next([
       this.stagingTableName.toLocaleLowerCase(),
       values.orgUid,

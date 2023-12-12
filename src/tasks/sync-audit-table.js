@@ -489,9 +489,6 @@ const syncOrganizationAudit = async (organization) => {
             }
           }
 
-          logger.info(
-            `CREATE AUDIT: ${validModelKey ? 'Unauthorized data' : `${key}`}`,
-          );
           await createAuditData(
             diff,
             modelKey,
