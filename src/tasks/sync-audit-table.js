@@ -303,7 +303,6 @@ const syncOrganizationAudit = async (organization) => {
 
     const root1 = _.get(rootHistory, `[${historyIndex}]`);
     const root2 = _.get(rootHistory, `[${historyIndex + 1}]`);
-
     if (!_.get(root2, 'confirmed')) {
       logger.info(
         `Waiting for the latest root for ${organization.name} to confirm`,
@@ -317,8 +316,10 @@ const syncOrganizationAudit = async (organization) => {
       root2.root_hash,
     );
 
+    let noFoundWarningMsg;
+
     if (_.isEmpty(kvDiff)) {
-      const warningMsg = [
+      noFoundWarningMsg = [
         `No data found for ${organization.name} in the current datalayer generation.`,
         `Missing data for root hash: ${root2.root_hash}.`,
         `This issue is often temporary and could be due to a lag in data propagation.`,
@@ -326,8 +327,7 @@ const syncOrganizationAudit = async (organization) => {
         'For ongoing issues, please contact the organization.',
       ].join(' ');
 
-      logger.warn(warningMsg);
-      return;
+      logger.warn(noFoundWarningMsg);
     }
 
     let comment = kvDiff.filter(
@@ -359,13 +359,14 @@ const syncOrganizationAudit = async (organization) => {
       transaction,
       mirrorTransaction,
       isValidModelKey,
+      sqlError,
     ) => {
       const getLatestAuditEntry = async (field) => {
         const latestEntry = await Audit.findOne({
           where: { table: field },
           order: [['id', 'DESC']],
         });
-        return latestEntry[field] || '';
+        return latestEntry?.[field] || '';
       };
       let latestComment = comment
         ? JSON.parse(comment)?.comment
@@ -385,16 +386,19 @@ const syncOrganizationAudit = async (organization) => {
         latestAuthor = await getLatestAuditEntry('author');
       }
 
-      const formatAuditField = (field) =>
-        typeof field === 'string' ? field : JSON.stringify(field);
+      const formatAuditField = (field) => {
+        return typeof field === 'string' ? field : JSON.stringify(field);
+      };
 
       const auditData = {
         orgUid: organization.orgUid,
         registryId: organization.registryId,
         rootHash: root2.root_hash,
-        type: diff.type,
+        type: diff?.type || 'Unknown',
         table: modelKey,
-        change: value,
+        change: formatAuditField(
+          sqlError ? { ...JSON.parse(value), error: sqlError } : value,
+        ),
         onchainConfirmationTimeStamp: root2.timestamp,
         comment: formatAuditField(latestComment),
         author: formatAuditField(latestAuthor),
@@ -416,6 +420,8 @@ const syncOrganizationAudit = async (organization) => {
         'credentials',
         'walletUsers',
         'walletUser',
+        'issuance',
+        'issuances',
       ].includes(key);
 
     const decodeDiff = (diff) => {
@@ -425,56 +431,16 @@ const syncOrganizationAudit = async (organization) => {
     };
 
     const updateTransaction = async (transaction, mirrorTransaction) => {
-      for (const diff of optimizedKvDiff) {
-        const [key, value] = decodeDiff(diff);
-        const modelKey = key.split('|')[0];
-        const validModelKey = isValidModelKey(key);
-
-        if (validModelKey) {
-          const record = JSON.parse(value);
-          const primaryKeyValue =
-            record[ModelKeys[modelKey].primaryKeyAttributes[0]];
-
-          if (diff.type === 'INSERT') {
-            logger.info(`UPSERTING: ${modelKey} - ${primaryKeyValue}`);
-            await ModelKeys[modelKey].upsert(record, {
-              transaction,
-              mirrorTransaction,
-            });
-          } else if (diff.type === 'DELETE') {
-            logger.info(`DELETING: ${modelKey} - ${primaryKeyValue}`);
-            await ModelKeys[modelKey].destroy({
-              where: {
-                [ModelKeys[modelKey].primaryKeyAttributes[0]]: primaryKeyValue,
-              },
-              transaction,
-              mirrorTransaction,
-            });
-          }
-
-          if (organization.orgUid === homeOrg?.orgUid) {
-            afterCommitCallbacks.push(async () => {
-              logger.info(`DELETING STAGING: ${primaryKeyValue}`);
-              await Staging.destroy({
-                where: { uuid: primaryKeyValue },
-              });
-            });
-          }
-        }
-
-        logger.info(
-          `CREATE AUDIT: ${validModelKey ? 'Unauthorized data' : `${key}`}`,
-        );
-        await createAuditData(
-          diff,
-          modelKey,
-          value,
+      if (noFoundWarningMsg) {
+        createAuditData(
+          'no found data',
+          'no found data',
+          { error: noFoundWarningMsg },
           transaction,
           mirrorTransaction,
-          isValidModelKey,
+          false,
+          '',
         );
-
-        logger.info(`Update ORG ROOT HASH: ${root2.root_hash}`);
         await Organization.update(
           { registryHash: root2.root_hash },
           {
@@ -483,6 +449,68 @@ const syncOrganizationAudit = async (organization) => {
             mirrorTransaction,
           },
         );
+      } else {
+        for (const diff of optimizedKvDiff) {
+          const [key, value] = decodeDiff(diff);
+          const modelKey = key.split('|')[0];
+          const validModelKey = isValidModelKey(key);
+          let sqlError;
+          if (validModelKey) {
+            const record = JSON.parse(value);
+            const primaryKeyValue =
+              record[ModelKeys[modelKey].primaryKeyAttributes[0]];
+            try {
+              if (diff.type === 'INSERT') {
+                logger.info(`UPSERTING: ${modelKey} - ${primaryKeyValue}`);
+                await ModelKeys[modelKey].upsert(record, {
+                  transaction,
+                  mirrorTransaction,
+                });
+              } else if (diff.type === 'DELETE') {
+                logger.info(`DELETING: ${modelKey} - ${primaryKeyValue}`);
+                await ModelKeys[modelKey].destroy({
+                  where: {
+                    [ModelKeys[modelKey].primaryKeyAttributes[0]]:
+                      primaryKeyValue,
+                  },
+                  transaction,
+                  mirrorTransaction,
+                });
+              }
+            } catch (error) {
+              logger.error(`Error parsing ${key}`, error);
+              sqlError = error;
+            }
+            if (organization.orgUid === homeOrg?.orgUid) {
+              afterCommitCallbacks.push(async () => {
+                logger.info(`DELETING STAGING: ${primaryKeyValue}`);
+                await Staging.destroy({
+                  where: { uuid: primaryKeyValue },
+                });
+              });
+            }
+          }
+
+          await createAuditData(
+            diff,
+            modelKey,
+            value,
+            transaction,
+            mirrorTransaction,
+            isValidModelKey,
+            sqlError,
+          );
+
+          logger.info(`Update ORG ROOT HASH: ${root2.root_hash}`);
+          await Organization.update(
+            { registryHash: root2.root_hash },
+            {
+              where: { orgUid: organization.orgUid },
+              transaction,
+              mirrorTransaction,
+            },
+          );
+        }
       }
     };
 

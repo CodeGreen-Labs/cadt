@@ -1,6 +1,7 @@
 import Joi from 'joi';
+import { omitObjectKeys } from '../utils/validation-utils';
 
-const createCredentialSchema = Joi.object({
+const baseCredentialSchema = {
   document_id: Joi.string().required(),
 
   expired_date: Joi.date().required(),
@@ -18,6 +19,36 @@ const createCredentialSchema = Joi.object({
 
     email: Joi.string().email().required(),
   },
+};
+
+const createCredentialSchema = Joi.object({
+  ...baseCredentialSchema,
 });
 
-export { createCredentialSchema };
+const walletUserPostSchema = {
+  id: Joi.string().required(),
+  ...baseCredentialSchema.wallet_user,
+};
+
+const credentialPostSchema = {
+  id: Joi.string().required(),
+  wallet_user_id: Joi.string().required(),
+  ...omitObjectKeys(baseCredentialSchema, ['wallet_user']),
+};
+
+const updateCredentialSchema = Joi.object().keys({
+  ...baseCredentialSchema,
+  id: Joi.string().required(),
+  wallet_user: omitObjectKeys(baseCredentialSchema.wallet_user, [
+    'public_key',
+    'ein',
+    'name',
+  ]),
+});
+
+export {
+  createCredentialSchema,
+  updateCredentialSchema,
+  walletUserPostSchema,
+  credentialPostSchema,
+};

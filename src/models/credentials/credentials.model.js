@@ -15,24 +15,26 @@ import {
 
 import dataLayer from '../../datalayer';
 import { keyValueToChangeList } from '../../utils/datalayer-utils';
+import { credentialPostSchema } from '../../validations';
 
 class Credential extends Model {
   static stagingTableName = 'Credentials';
   static changes = new rxjs.Subject();
   static defaultColumns = Object.keys(ModelTypes);
+  static validateImport = credentialPostSchema;
 
   static getAssociatedModels = () => [
     {
       model: WalletUser,
       pluralize: true,
+      foreignKey: 'wallet_user_id',
     },
   ];
 
   static associate() {
-    // Credential.belongsTo(WalletUser, {
-    //   foreignKey: 'wallet_user',
-    //   targetKey: 'public_key',
-    // });
+    Credential.belongsTo(WalletUser, {
+      foreignKey: 'wallet_user_id',
+    });
   }
   static async create(values, options) {
     safeMirrorDbHandler(async () => {
@@ -78,17 +80,33 @@ class Credential extends Model {
       await CredentialMirror.upsert(values, mirrorOptions);
     });
 
-    const upsertResult = await super.upsert(
-      { ...values, commit_status: 'committed' },
-      options,
-    );
+    const { id, ...data } = values;
+
+    const exist = await super.findByPk(id);
+
+    let result;
+
+    if (exist)
+      result = await super.update(
+        { ...data, commit_status: 'committed' },
+        {
+          ...options,
+          where: { id },
+        },
+      );
+    else {
+      result = await super.upsert(
+        { ...values, commit_status: 'committed' },
+        options,
+      );
+    }
 
     Credential.changes.next([
       this.stagingTableName.toLocaleLowerCase(),
       values.orgUid,
     ]);
 
-    return upsertResult;
+    return result;
   }
 
   static async generateChangeListFromStagedData(stagedData, comment, author) {
