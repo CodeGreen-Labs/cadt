@@ -32,6 +32,7 @@ const walletUserPostSchema = {
 
 const credentialPostSchema = {
   id: Joi.string().required(),
+  wallet_user_id: Joi.string().required(),
   ...omitObjectKeys(baseCredentialSchema, ['wallet_user']),
 };
 

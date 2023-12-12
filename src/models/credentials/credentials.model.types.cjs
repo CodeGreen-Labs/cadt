@@ -17,16 +17,19 @@ module.exports = {
   document_id: {
     type: Sequelize.STRING,
     require: true,
+    allowNull: false,
   },
 
   expired_date: {
     type: Sequelize.DATE,
     require: true,
+    allowNull: false,
   },
 
   wallet_user_id: {
     type: Sequelize.STRING,
     require: true,
+    allowNull: false,
   },
   commit_status: {
     type: Sequelize.ENUM('staged', 'committing', 'committed'),
