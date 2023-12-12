@@ -11,6 +11,7 @@ import {
   Rule,
   Staging,
   Unit,
+  Credential,
 } from '../models';
 import { getConfig } from '../utils/config-loader';
 import { formatModelAssociationName } from './model-utils.js';
@@ -295,4 +296,24 @@ export const assertCredentialLevelRecordExists = async (
 
   // Assuming you want to return an array of dataValues for each matching record
   return recordsCount;
+};
+
+/**
+ * Checks if a credential record exists in the database.
+ *
+ * @param {number} credentialId - The ID of the credential to check.
+ * @returns {Promise<object>} The data values of the matching credential record, or null if no match is found.
+ */
+export const assertCredentialRecordExists = async (credentialId) => {
+  const record = await Credential.findByPk(credentialId, {
+    include: Credential.getAssociatedModels(),
+  });
+
+  if (!record) {
+    throw new Error(
+      `The credential record for the credentialId: ${credentialId} does not exist.`,
+    );
+  }
+
+  return record.dataValues;
 };

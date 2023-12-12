@@ -14,14 +14,21 @@ import {
   createXlsFromSequelizeResults,
   transformFullXslsToChangeList,
 } from '../../utils/xls';
+import { Credential } from '../';
 
 import dataLayer from '../../datalayer';
 import { keyValueToChangeList } from '../../utils/datalayer-utils';
+import { walletUserPostSchema } from '../../validations';
 class WalletUser extends Model {
   static stagingTableName = 'WalletUsers';
   static changes = new rxjs.Subject();
+  static validateImport = walletUserPostSchema;
   static defaultColumns = Object.keys(ModelTypes);
-  static associate() {}
+  static associate() {
+    WalletUser.hasOne(Credential, {
+      foreignKey: 'wallet_user_id',
+    });
+  }
 
   static async create(values, options) {
     safeMirrorDbHandler(async () => {
@@ -60,11 +67,23 @@ class WalletUser extends Model {
       await WalletUserMirror.upsert(values, mirrorOptions);
     });
 
+    const { id, ...data } = values;
+
+    const exist = super.findByPk(id);
+
+    let result;
+
+    if (exist) {
+      result = super.update({ ...data }, { ...options, where: { id: id } });
+    } else {
+      result = super.upsert(data, options);
+    }
+
     WalletUser.changes.next([
       this.stagingTableName.toLocaleLowerCase(),
       values.orgUid,
     ]);
-    return super.upsert(values, options);
+    return result;
   }
 
   static async generateChangeListFromStagedData(stagedData, comment, author) {
@@ -101,6 +120,7 @@ class WalletUser extends Model {
       'update',
       primaryKeyMap,
     );
+    console.log('updateChangeList', updateChangeList);
 
     const { registryId } = await Organization.getHomeOrg();
     const currentDataLayer = await dataLayer.getCurrentStoreData(registryId);

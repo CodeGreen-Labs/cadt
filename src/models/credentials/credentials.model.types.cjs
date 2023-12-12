@@ -7,6 +7,7 @@ module.exports = {
     allowNull: false,
     defaultValue: Sequelize.UUIDV4,
     primaryKey: true,
+    unique: true,
   },
   credential_level: {
     type: Sequelize.INTEGER,
@@ -23,7 +24,7 @@ module.exports = {
     require: true,
   },
 
-  wallet_user: {
+  wallet_user_id: {
     type: Sequelize.STRING,
     require: true,
   },
