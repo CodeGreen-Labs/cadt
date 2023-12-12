@@ -420,6 +420,8 @@ const syncOrganizationAudit = async (organization) => {
         'credentials',
         'walletUsers',
         'walletUser',
+        'issuance',
+        'issuances',
       ].includes(key);
 
     const decodeDiff = (diff) => {
