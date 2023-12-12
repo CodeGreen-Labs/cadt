@@ -78,7 +78,7 @@ class WalletUser extends Model {
         { ...options, where: { id: id } },
       );
     } else {
-      result = await super.upsert(data, options);
+      result = await super.upsert({ ...values }, options);
     }
     WalletUser.changes.next([
       this.stagingTableName.toLocaleLowerCase(),
@@ -121,7 +121,6 @@ class WalletUser extends Model {
       'update',
       primaryKeyMap,
     );
-    console.log('updateChangeList', updateChangeList);
 
     const { registryId } = await Organization.getHomeOrg();
     const currentDataLayer = await dataLayer.getCurrentStoreData(registryId);
@@ -142,6 +141,7 @@ class WalletUser extends Model {
       `{"author": "${author}"}`,
       isUpdateAuthor,
     );
+
     return {
       walletUsers: [
         ..._.get(insertChangeList, 'walletUser', []),
