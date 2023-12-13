@@ -457,8 +457,17 @@ class Staging extends Model {
 
           // hacky fix to account for the units and projects table not
           // being lowercase and plural in the xsls transformation
-          if (tablePrefix === 'units' || tablePrefix === 'projects') {
-            tablePrefix = tablePrefix.replace(/s\s*$/, '');
+          if (
+            tablePrefix === 'units' ||
+            tablePrefix === 'projects' ||
+            tablePrefix === 'credentials' ||
+            tablePrefix === 'walletusers'
+          ) {
+            if (tablePrefix === 'walletusers') {
+              tablePrefix = 'walletUser';
+            } else {
+              tablePrefix = tablePrefix.replace(/s\s*$/, '');
+            }
           }
 
           deleteChangeList.push({

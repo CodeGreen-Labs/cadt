@@ -471,7 +471,7 @@ const syncOrganizationAudit = async (organization) => {
                 await ModelKeys[modelKey].destroy({
                   where: {
                     [ModelKeys[modelKey].primaryKeyAttributes[0]]:
-                      primaryKeyValue,
+                      primaryKeyValue || key.split('|')[1],
                   },
                   transaction,
                   mirrorTransaction,

@@ -1,5 +1,5 @@
 import { uuid } from 'uuidv4';
-import { Credential, WalletUser, Staging, Organization } from '../models';
+import { Credential, WalletUser, Staging, Organization, Rule } from '../models';
 import {
   assertHomeOrgExists,
   assertNoPendingCommits,
@@ -36,21 +36,6 @@ export const create = async (req, res) => {
       where: { public_key: wallet_user.public_key, orgUid },
     });
 
-    if (!walletUserExists) {
-      await Staging.create({
-        uuid: walletUserPrimaryKey,
-        action: 'INSERT',
-        table: WalletUser.stagingTableName,
-        data: JSON.stringify([
-          {
-            id: walletUserPrimaryKey,
-            ...wallet_user,
-            orgUid,
-          },
-        ]),
-      });
-    }
-
     await Staging.create({
       uuid: credentialPrimaryKey,
       action: 'INSERT',
@@ -68,6 +53,21 @@ export const create = async (req, res) => {
         },
       ]),
     });
+
+    if (!walletUserExists) {
+      await Staging.create({
+        uuid: walletUserPrimaryKey,
+        action: 'INSERT',
+        table: WalletUser.stagingTableName,
+        data: JSON.stringify([
+          {
+            id: walletUserPrimaryKey,
+            ...wallet_user,
+            orgUid,
+          },
+        ]),
+      });
+    }
 
     res.json({
       message: 'Credential staged successfully',
@@ -120,6 +120,46 @@ export const update = async (req, res) => {
   } catch (err) {
     res.status(400).json({
       message: 'Error updating credential',
+      error: err.message,
+      success: false,
+    });
+  }
+};
+
+export const destroy = async (req, res) => {
+  try {
+    await assertIfReadOnlyMode();
+    await assertHomeOrgExists();
+    await assertNoPendingCommits();
+
+    const { id: credentialId } = req.body;
+
+    const { walletUser } = await assertCredentialRecordExists(credentialId);
+
+    const { id: walletUserId } = walletUser.dataValues;
+
+    const walletUserStagedData = {
+      uuid: walletUserId,
+      action: 'DELETE',
+      table: WalletUser.stagingTableName,
+    };
+    await Staging.upsert(walletUserStagedData);
+
+    const credentialStagedData = {
+      uuid: credentialId,
+      action: 'DELETE',
+      table: Credential.stagingTableName,
+    };
+
+    await Staging.upsert(credentialStagedData);
+
+    res.json({
+      message: 'Credential delete added to staging',
+      success: true,
+    });
+  } catch (err) {
+    res.status(400).json({
+      message: 'Error delete credential',
       error: err.message,
       success: false,
     });

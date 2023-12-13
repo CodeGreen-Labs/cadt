@@ -46,9 +46,14 @@ const updateCredentialSchema = Joi.object().keys({
   ]),
 });
 
+const deleteCredentialSchema = Joi.object().keys({
+  id: Joi.string().required(),
+});
+
 export {
   createCredentialSchema,
   updateCredentialSchema,
   walletUserPostSchema,
   credentialPostSchema,
+  deleteCredentialSchema,
 };
