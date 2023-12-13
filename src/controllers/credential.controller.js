@@ -1,5 +1,5 @@
 import { uuid } from 'uuidv4';
-import { Credential, WalletUser, Staging, Organization, Rule } from '../models';
+import { Credential, WalletUser, Staging, Organization } from '../models';
 import {
   assertHomeOrgExists,
   assertNoPendingCommits,
@@ -7,14 +7,67 @@ import {
   assertCredentialLevelRecordExists,
   assertCredentialRecordExists,
 } from '../utils/data-assertions';
+import { Sequelize } from 'sequelize';
+import { paginationParams } from '../utils/helpers';
+import { getQuery } from '../utils/sql-utils';
 
 export const findAll = async (req, res) => {
   try {
-    let credentials = await Credential.findAll();
+    let { page, limit, search, orgUid, filter, order } = req.query;
 
-    res.status(200).json(credentials);
+    let where = {};
+    if (search) {
+      where = {
+        [Sequelize.Op.or]: [
+          { '$walletUser.name$': { [Sequelize.Op.like]: `%${search}%` } },
+          { '$walletUser.public_key$': { [Sequelize.Op.like]: `%${search}%` } },
+        ],
+      };
+    }
+    if (orgUid) {
+      where.orgUid = orgUid;
+    }
+
+    const { orderCondition, whereCondition } = getQuery(filter, order);
+
+    const pagination = paginationParams(page, limit);
+
+    let credentials = await Credential.findAndCountAll({
+      where: { ...where, ...whereCondition },
+      include: Credential.getAssociatedModels(),
+      order: orderCondition,
+      ...pagination,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: credentials,
+    });
   } catch (error) {
-    res.status(500).send(error.message);
+    res.status(400).json({
+      message: 'Error on retrieving credentials',
+      error: error.message,
+      success: false,
+    });
+  }
+};
+
+export const findById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await Credential.findByPk(id);
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: 'Error on retrieving credential',
+      error: error.message,
+      success: false,
+    });
   }
 };
 
