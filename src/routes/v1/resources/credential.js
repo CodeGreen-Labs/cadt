@@ -6,6 +6,7 @@ import joiExpress from 'express-joi-validation';
 import { credentialController } from '../../../controllers';
 import {
   createCredentialSchema,
+  credentialGetQuerySchema,
   deleteCredentialSchema,
   updateCredentialSchema,
 } from '../../../validations';
@@ -14,8 +15,15 @@ const validator = joiExpress.createValidator({ passError: true });
 
 const CredentialRouter = express.Router();
 
-CredentialRouter.get('/', (req, res) => {
-  return credentialController.findAll(req, res);
+CredentialRouter.get(
+  '/',
+  validator.query(credentialGetQuerySchema),
+  (req, res) => {
+    return credentialController.findAll(req, res);
+  },
+);
+CredentialRouter.get('/:id', (req, res) => {
+  return credentialController.findById(req, res);
 });
 
 CredentialRouter.post(

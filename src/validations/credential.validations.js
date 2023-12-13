@@ -1,5 +1,9 @@
 import Joi from 'joi';
 import { omitObjectKeys } from '../utils/validation-utils';
+import {
+  genericFilterRegex,
+  genericSortColumnRegex,
+} from '../utils/string-utils';
 
 const baseCredentialSchema = {
   document_id: Joi.string().required(),
@@ -49,6 +53,18 @@ const updateCredentialSchema = Joi.object().keys({
 const deleteCredentialSchema = Joi.object().keys({
   id: Joi.string().required(),
 });
+
+export const credentialGetQuerySchema = Joi.object()
+  .keys({
+    page: Joi.number().integer().min(1), // Ensures page is a positive integer
+    limit: Joi.number().integer().min(1), // Ensures limit is a positive integer
+    orgUid: Joi.string(),
+    search: Joi.string(),
+    order: Joi.string().regex(genericSortColumnRegex).default('updatedAt:DESC'), // Adjusted default value
+    filter: Joi.string().regex(genericFilterRegex),
+  })
+  .with('page', 'limit')
+  .with('limit', 'page');
 
 export {
   createCredentialSchema,
