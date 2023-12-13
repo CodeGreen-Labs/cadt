@@ -10,16 +10,19 @@ export const getQuery = (filter, order) => {
   let orderCondition = [];
 
   if (filter) {
-    const matches = filter.match(genericFilterRegex);
-    if (matches) {
-      // check if the value param is an array so we can parse it
-      const valueMatches = matches[2].match(isArrayRegex);
-      whereCondition[matches[1]] = {
-        [Sequelize.Op[matches[3]]]: valueMatches
-          ? JSON.parse(matches[2].replace(/'/g, '"')) // replace single quotes with double quotes for valid JSON
-          : matches[2],
-      };
-    }
+    // Split the filter string by semicolon to handle multiple filters
+    const filterParts = filter.split(';');
+    filterParts.forEach((filterPart) => {
+      const matches = filterPart.match(genericFilterRegex);
+      if (matches) {
+        const valueMatches = matches[2].match(isArrayRegex);
+        whereCondition[matches[1]] = {
+          [Sequelize.Op[matches[3]]]: valueMatches
+            ? JSON.parse(matches[2].replace(/'/g, '"')) // replace single quotes with double quotes for valid JSON
+            : matches[2],
+        };
+      }
+    });
   }
 
   // Building the order condition
