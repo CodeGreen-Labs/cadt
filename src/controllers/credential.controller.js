@@ -31,8 +31,7 @@ export const findAll = async (req, res) => {
     const { orderCondition, whereCondition } = getQuery(filter, order);
 
     const pagination = paginationParams(page, limit);
-    console.log(orderCondition, whereCondition);
-    // Getting the credentials with filters, ordering, and pagination
+
     let credentials = await Credential.findAndCountAll({
       where: { ...where, ...whereCondition },
       include: Credential.getAssociatedModels(),
