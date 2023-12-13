@@ -22,8 +22,8 @@ CredentialRouter.get(
     return credentialController.findAll(req, res);
   },
 );
-CredentialRouter.get('/:id', (req, res) => {
-  return credentialController.findById(req, res);
+CredentialRouter.get('/:address', (req, res) => {
+  return credentialController.findByWalletAddress(req, res);
 });
 
 CredentialRouter.post(
