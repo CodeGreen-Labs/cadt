@@ -11,7 +11,6 @@ import {
   Rule,
   Unit,
   Credential,
-  WalletUser,
 } from '../../models';
 import { encodeHex, generateOffer } from '../../utils/datalayer-utils';
 const Op = Sequelize.Op;
@@ -31,7 +30,6 @@ import {
   createXlsFromSequelizeResults,
   transformFullXslsToChangeList,
 } from '../../utils/xls';
-import { logger } from '../../config/logger.cjs';
 
 class Staging extends Model {
   static changes = new rxjs.Subject();
@@ -47,6 +45,7 @@ class Staging extends Model {
   }
 
   static async upsert(values, options) {
+    console.log('upserting', values);
     Staging.changes.next(['staging']);
     return super.upsert(values, options);
   }
@@ -414,7 +413,7 @@ class Staging extends Model {
       }
 
       diff.original = original;
-      diff.change = {};
+      diff.change = JSON.parse(data);
     }
 
     return diff;
@@ -469,7 +468,6 @@ class Staging extends Model {
               tablePrefix = tablePrefix.replace(/s\s*$/, '');
             }
           }
-
           deleteChangeList.push({
             action: 'delete',
             key: encodeHex(`${tablePrefix}|${stagingRecord.uuid}`),
@@ -512,17 +510,11 @@ class Staging extends Model {
       projectsChangeList,
       rulesChangeList,
       credentialChangeList,
-      walletUserChangeList,
     ] = await Promise.all([
       Unit.generateChangeListFromStagedData(stagedRecords, comment, author),
       Project.generateChangeListFromStagedData(stagedRecords, comment, author),
       Rule.generateChangeListFromStagedData(stagedRecords, comment, author),
       Credential.generateChangeListFromStagedData(
-        stagedRecords,
-        comment,
-        author,
-      ),
-      WalletUser.generateChangeListFromStagedData(
         stagedRecords,
         comment,
         author,
@@ -534,7 +526,6 @@ class Staging extends Model {
       ...unitsChangeList,
       ...rulesChangeList,
       ...credentialChangeList,
-      ...walletUserChangeList,
       issuances: [
         ...unitsChangeList.issuances,
         ...projectsChangeList.issuances,
