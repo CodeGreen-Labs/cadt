@@ -52,11 +52,13 @@ export const findAll = async (req, res) => {
   }
 };
 
-export const findById = async (req, res) => {
+export const findByWalletAddress = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    const result = await Credential.findByPk(id);
+    const { address } = req.params;
+    const result = await Credential.findOne({
+      include: Credential.getAssociatedModels(),
+      where: { '$walletUser.public_key$': address },
+    });
 
     res.json({
       success: true,
