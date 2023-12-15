@@ -24,6 +24,8 @@ export const stagingGetQuerySchema = Joi.object()
     page: Joi.number(),
     limit: Joi.number(),
     type: Joi.string(),
-    table: Joi.string().valid('Projects', 'Units').optional(),
+    table: Joi.string()
+      .valid('Projects', 'Units', 'Rules', 'Credentials')
+      .optional(),
   })
   .with('page', 'limit');
