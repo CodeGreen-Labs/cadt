@@ -102,7 +102,7 @@ class Credential extends Model {
     return result;
   }
 
-  static async generateChangeListFromStagedData(stageData, comment, author) {
+  static async generateChangeListFromStagedData(stageData) {
     const commitData = transformStageToCommitData(stageData);
 
     return commitData;
