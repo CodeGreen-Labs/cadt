@@ -6,15 +6,8 @@ import ModelTypes from './credentials.model.types.cjs';
 import { WalletUser } from '../';
 import { CredentialMirror } from './credentials.model.mirror';
 import { sequelize, safeMirrorDbHandler } from '../../database';
-import { Organization, Staging } from '../';
+import { transformStageToCommitData } from '../../utils/model-utils.js';
 
-import {
-  createXlsFromSequelizeResults,
-  transformFullXslsToChangeList,
-} from '../../utils/xls';
-
-import dataLayer from '../../datalayer';
-import { keyValueToChangeList } from '../../utils/datalayer-utils';
 import { credentialPostSchema } from '../../validations';
 
 class Credential extends Model {
@@ -109,69 +102,10 @@ class Credential extends Model {
     return result;
   }
 
-  static async generateChangeListFromStagedData(stagedData, comment, author) {
-    const [insertRecords, updateRecords, deleteChangeList] =
-      Staging.seperateStagingDataIntoActionGroups(
-        stagedData,
-        this.stagingTableName,
-      );
+  static async generateChangeListFromStagedData(stageData) {
+    const commitData = transformStageToCommitData(stageData);
 
-    const primaryKeyMap = {
-      credential: 'id',
-    };
-
-    const insertXslsSheets = createXlsFromSequelizeResults({
-      rows: insertRecords,
-      model: Credential,
-      toStructuredCsv: true,
-    });
-    const updateXslsSheets = createXlsFromSequelizeResults({
-      rows: updateRecords,
-      model: Credential,
-      toStructuredCsv: true,
-    });
-
-    const insertChangeList = await transformFullXslsToChangeList(
-      insertXslsSheets,
-      'insert',
-      primaryKeyMap,
-    );
-
-    const updateChangeList = await transformFullXslsToChangeList(
-      updateXslsSheets,
-      'update',
-      primaryKeyMap,
-    );
-
-    const { registryId } = await Organization.getHomeOrg();
-    const currentDataLayer = await dataLayer.getCurrentStoreData(registryId);
-    const currentComment = currentDataLayer.filter(
-      (kv) => kv.key === 'comment',
-    );
-    const isUpdateComment = currentComment.length > 0;
-    const commentChangeList = keyValueToChangeList(
-      'comment',
-      `{"comment": "${comment}"}`,
-      isUpdateComment,
-    );
-
-    const currentAuthor = currentDataLayer.filter((kv) => kv.key === 'author');
-    const isUpdateAuthor = currentAuthor.length > 0;
-    const authorChangeList = keyValueToChangeList(
-      'author',
-      `{"author": "${author}"}`,
-      isUpdateAuthor,
-    );
-    return {
-      credentials: [
-        ..._.get(insertChangeList, 'credential', []),
-        ..._.get(updateChangeList, 'credential', []),
-        ...deleteChangeList,
-      ],
-
-      comment: commentChangeList,
-      author: authorChangeList,
-    };
+    return commitData;
   }
 }
 

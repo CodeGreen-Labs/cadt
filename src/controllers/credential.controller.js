@@ -105,24 +105,17 @@ export const create = async (req, res) => {
             ? walletUserExists.dataValues.id
             : walletUserPrimaryKey,
           orgUid,
+
+          ...(!walletUserExists && {
+            walletUser: {
+              id: walletUserPrimaryKey,
+              ...walletUser,
+              orgUid,
+            },
+          }),
         },
       ]),
     });
-
-    if (!walletUserExists) {
-      await Staging.create({
-        uuid: walletUserPrimaryKey,
-        action: 'INSERT',
-        table: WalletUser.stagingTableName,
-        data: JSON.stringify([
-          {
-            id: walletUserPrimaryKey,
-            ...walletUser,
-            orgUid,
-          },
-        ]),
-      });
-    }
 
     res.json({
       message: 'Credential staged successfully',
@@ -146,29 +139,30 @@ export const update = async (req, res) => {
     await assertNoPendingCommits();
     const { walletUser, ...credential } = req.body;
     const { id: credentialId, credential_level } = credential;
-    const { walletUser: existWalletUser } = await assertCredentialRecordExists(
-      credentialId,
-    );
+    const { wallet_user_id } = await assertCredentialRecordExists(credentialId);
 
     if (credential_level) {
       await assertCredentialLevelRecordExists([credential.credential_level]);
     }
 
-    if (existWalletUser) {
-      const { id: walletUserId } = existWalletUser.dataValues;
-      const walletUserStagedData = {
-        uuid: walletUserId,
-        action: 'UPDATE',
-        table: WalletUser.stagingTableName,
-        data: JSON.stringify([{ id: walletUserId, ...walletUser }]),
-      };
-      await Staging.upsert(walletUserStagedData);
-    }
     const credentialStagedData = {
       uuid: credentialId,
       action: 'UPDATE',
       table: Credential.stagingTableName,
-      data: JSON.stringify([{ id: credentialId, ...credential }]),
+      data: JSON.stringify([
+        {
+          id: credentialId,
+          wallet_user_id,
+          ...credential,
+
+          ...(walletUser && {
+            walletUser: {
+              id: wallet_user_id,
+              ...walletUser,
+            },
+          }),
+        },
+      ]),
     };
 
     await Staging.upsert(credentialStagedData);
@@ -199,17 +193,18 @@ export const destroy = async (req, res) => {
 
     const { id: walletUserId } = walletUser.dataValues;
 
-    const walletUserStagedData = {
-      uuid: walletUserId,
-      action: 'DELETE',
-      table: WalletUser.stagingTableName,
-    };
-    await Staging.upsert(walletUserStagedData);
-
     const credentialStagedData = {
       uuid: credentialId,
       action: 'DELETE',
       table: Credential.stagingTableName,
+      data: JSON.stringify([
+        {
+          id: credentialId,
+          walletUser: {
+            id: walletUserId,
+          },
+        },
+      ]),
     };
 
     await Staging.upsert(credentialStagedData);
