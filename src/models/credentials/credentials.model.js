@@ -3,7 +3,7 @@ const { Model } = Sequelize;
 import _ from 'lodash';
 import * as rxjs from 'rxjs';
 import ModelTypes from './credentials.model.types.cjs';
-import { WalletUser } from '../';
+import { WalletUser, Staging } from '../';
 import { CredentialMirror } from './credentials.model.mirror';
 import { sequelize, safeMirrorDbHandler } from '../../database';
 import { transformStageToCommitData } from '../../utils/model-utils.js';
@@ -104,6 +104,12 @@ class Credential extends Model {
 
   static async generateChangeListFromStagedData(stageData) {
     const commitData = transformStageToCommitData(stageData);
+
+    const uuids = stageData.map((stage) => stage.uuid);
+    await Staging.update(
+      { commited: true },
+      { where: { uuid: { [Sequelize.Op.in]: uuids } } },
+    );
 
     return commitData;
   }
