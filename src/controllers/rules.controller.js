@@ -4,17 +4,7 @@ import { Sequelize } from 'sequelize';
 
 import { Rule, Staging } from '../models';
 
-import {
-  genericFilterRegex,
-  genericSortColumnRegex,
-  isArrayRegex,
-} from '../utils/string-utils';
-
-import {
-  columnsToInclude,
-  optionallyPaginatedResponse,
-  paginationParams,
-} from '../utils/helpers';
+import { paginationParams } from '../utils/helpers';
 
 import {
   assertCredentialLevelRecordExists,
@@ -24,7 +14,7 @@ import {
   assertRuleRecordExists,
 } from '../utils/data-assertions';
 
-import { formatModelAssociationName } from '../utils/model-utils.js';
+import { getQuery } from '../utils/sql-utils';
 
 export const create = async (req, res) => {
   try {
@@ -63,102 +53,49 @@ export const create = async (req, res) => {
 
 export const findAll = async (req, res) => {
   try {
-    let { page, limit, search, orgUid, columns, xls, filter, order } =
-      req.query;
+    let { page, limit, search, orgUid, filter, order } = req.query;
 
-    let where = orgUid != null && orgUid !== 'all' ? { orgUid } : undefined;
-
-    if (filter) {
-      if (!where) {
-        where = {};
-      }
-
-      const matches = filter.match(genericFilterRegex);
-      // check if the value param is an array so we can parse it
-      const valueMatches = matches[2].match(isArrayRegex);
-      where[matches[1]] = {
-        [Sequelize.Op[matches[3]]]: valueMatches
-          ? JSON.parse(matches[2])
-          : matches[2],
-      };
-    }
-
-    if (orgUid === 'all') {
-      // 'ALL' orgUid is just a UI concept but they keep forgetting this and send it
-      // So delete this value if its sent so nothing breaks
-      orgUid = undefined;
-    }
-
-    const includes = Rule.getAssociatedModels();
-
-    if (columns) {
-      // Remove any unsupported columns
-      columns = columns.filter((col) =>
-        Rule.defaultColumns
-          .concat(includes.map(formatModelAssociationName))
-          .includes(col),
-      );
-    } else {
-      columns = Rule.defaultColumns.concat(
-        includes.map(formatModelAssociationName),
-      );
-    }
-
-    // If only FK fields have been specified, select just ID
-    if (!columns.length) {
-      columns = ['warehouseProjectId'];
-    }
-
-    let pagination = paginationParams(page, limit);
-
-    if (xls) {
-      pagination = { page: undefined, limit: undefined };
-    }
-
+    let where = {};
     if (search) {
-      // we cant add methodology2 to the fts table because you cant alter virtual tables without deleting the whole thig
-      // so we need a migration that deletes the entire fts table and then repopulates it. This will be a new story
-      const ftsResults = await Rule.fts(search, orgUid, {});
-      const mappedResults = ftsResults.rows.map((ftsResult) =>
-        _.get(ftsResult, 'dataValues.warehouseProjectId'),
-      );
-
-      if (!where) {
-        where = {};
-      }
-
-      where.warehouseProjectId = {
-        [Sequelize.Op.in]: mappedResults,
+      where = {
+        [Sequelize.Op.or]: [
+          {
+            '$project.warehouseProjectId$': {
+              [Sequelize.Op.like]: `%${search}%`,
+            },
+          },
+          { '$project.projectName$': { [Sequelize.Op.like]: `%${search}%` } },
+          { $cat_id$: { [Sequelize.Op.like]: `%${search}%` } },
+          { '$unit.vintageYear$': { [Sequelize.Op.like]: `%${search}%` } },
+          {
+            '$unit.serialNumberBlock$': { [Sequelize.Op.like]: `%${search}%` },
+          },
+        ],
       };
     }
-
-    const query = {
-      ...columnsToInclude(columns, includes),
-      ...pagination,
-    };
-
-    // default to DESC
-    let resultOrder = [['createdAt', 'DESC']];
-
-    if (order?.match(genericSortColumnRegex)) {
-      const matches = order.match(genericSortColumnRegex);
-      resultOrder = [[matches[1], matches[2]]];
+    if (orgUid) {
+      where.orgUid = orgUid;
     }
 
-    const results = await Rule.findAndCountAll({
-      distinct: true,
-      where,
-      order: resultOrder,
-      ...query,
+    const { orderCondition, whereCondition } = getQuery(filter, order);
+
+    const pagination = paginationParams(page, limit);
+
+    let rules = await Rule.findAndCountAll({
+      where: { ...where, ...whereCondition },
+      include: Rule.getAssociatedModels(),
+      order: orderCondition,
+      ...pagination,
     });
 
-    const response = optionallyPaginatedResponse(results, page, limit);
-
-    return res.json(response);
+    res.status(200).json({
+      success: true,
+      data: rules,
+    });
   } catch (error) {
     console.trace(error);
     res.status(400).json({
-      message: 'Error retrieving projects',
+      message: 'Error on retrieving rules',
       error: error.message,
       success: false,
     });
@@ -167,16 +104,19 @@ export const findAll = async (req, res) => {
 
 export const findOne = async (req, res) => {
   try {
-    res.json(
-      await Rule.findByPk(req.query.cat_id, {
-        include: Rule.getAssociatedModels().map((association) => {
-          return association.model;
-        }),
+    const result = await Rule.findByPk(req.params.cat_id, {
+      include: Rule.getAssociatedModels().map((association) => {
+        return association.model;
       }),
-    );
+    });
+
+    res.json({
+      success: true,
+      data: result,
+    });
   } catch (error) {
     res.status(400).json({
-      message: 'Cant find Unit.',
+      message: 'Error on retrieving rule',
       error: error.message,
       success: false,
     });

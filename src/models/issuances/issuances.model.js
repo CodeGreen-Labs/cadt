@@ -2,7 +2,7 @@
 import Sequelize from 'sequelize';
 const { Model } = Sequelize;
 import { sequelize, safeMirrorDbHandler } from '../../database';
-import { Project, Unit } from '..';
+import { Project, Rule, Unit } from '..';
 
 import ModelTypes from './issuances.modeltypes.cjs';
 import { IssuanceMirror } from './issuances.model.mirror';
@@ -18,6 +18,10 @@ class Issuance extends Model {
       targetKey: 'issuanceId',
       foreignKey: 'issuanceId',
     });
+    Issuance.hasMany(Rule, {
+      targetKey: 'issuanceId',
+      foreignKey: 'issuance_id',
+    });
 
     safeMirrorDbHandler(() => {
       IssuanceMirror.belongsTo(Project, {
@@ -27,6 +31,10 @@ class Issuance extends Model {
       IssuanceMirror.hasOne(Unit, {
         targetKey: 'warehouseUnitId',
         foreignKey: 'warehouseUnitId',
+      });
+      Issuance.hasMany(Rule, {
+        targetKey: 'issuanceId',
+        foreignKey: 'issuance_id',
       });
     });
   }

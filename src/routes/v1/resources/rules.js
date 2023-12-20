@@ -13,11 +13,16 @@ import {
   rulesPostSchema,
 } from '../../../validations';
 
-RuleRouter.get('/', validator.query(rulesGetQuerySchema), (req, res) => {
-  return req.query.cat_id
-    ? RuleController.findOne(req, res)
-    : RuleController.findAll(req, res);
-});
+RuleRouter.get(
+  '/',
+  validator.query(rulesGetQuerySchema),
+  RuleController.findAll,
+);
+RuleRouter.get(
+  '/:cat_id',
+  validator.query(rulesGetQuerySchema),
+  RuleController.findOne,
+);
 
 RuleRouter.post('/', validator.body(rulesPostSchema), RuleController.create);
 

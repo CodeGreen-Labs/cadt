@@ -8,7 +8,7 @@ import {
   sanitizeSqliteFtsQuery,
   sequelize,
 } from '../../database';
-import { Issuance, Label, Organization, Staging } from '../../models';
+import { Issuance, Label, Organization, Rule, Staging } from '../../models';
 import { UnitMirror } from './units.model.mirror';
 import ModelTypes from './units.modeltypes.cjs';
 
@@ -47,6 +47,10 @@ class Unit extends Model {
       foreignKey: 'issuanceId',
     });
 
+    Unit.hasOne(Rule, {
+      foreignKey: 'warehouse_unit_id',
+    });
+
     // https://gist.github.com/elliette/20ddc4e827efd9d62bc98752e7a62610#some-important-addendums
     Unit.belongsToMany(Label, {
       foreignKey: 'warehouseUnitId',
@@ -65,6 +69,10 @@ class Unit extends Model {
         foreignKey: 'warehouseUnitId',
         through: 'label_unit',
         as: 'labels',
+      });
+
+      Unit.hasOne(Rule, {
+        foreignKey: 'warehouse_unit_id',
       });
     });
   }
