@@ -20,6 +20,7 @@ import {
   ProjectLocation,
   Rating,
   RelatedProject,
+  Rule,
   Staging,
 } from '../';
 
@@ -95,6 +96,9 @@ class Project extends Model {
     Project.hasMany(Rating, {
       foreignKey: 'warehouseProjectId',
     });
+    Project.hasMany(Rule, {
+      foreignKey: 'warehouse_project_id',
+    });
 
     safeMirrorDbHandler(() => {
       ProjectMirror.hasMany(ProjectLocation, {
@@ -117,6 +121,9 @@ class Project extends Model {
       });
       ProjectMirror.hasMany(Rating, {
         foreignKey: 'warehouseProjectId',
+      });
+      Project.hasMany(Rule, {
+        foreignKey: 'warehouse_project_id',
       });
     });
   }

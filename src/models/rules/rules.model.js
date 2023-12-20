@@ -6,7 +6,7 @@ import Sequelize from 'sequelize';
 const { Model } = Sequelize;
 
 import { safeMirrorDbHandler, sequelize } from '../../database';
-import { Organization, Staging } from '../../models';
+import { Issuance, Organization, Staging, Project, Unit } from '../';
 import { rulesPostSchema } from '../../validations/index';
 
 import dataLayer from '../../datalayer';
@@ -26,9 +26,39 @@ class Rule extends Model {
   static validateImport = rulesPostSchema;
   static defaultColumns = Object.keys(ModelTypes);
 
-  static getAssociatedModels = () => [];
+  static getAssociatedModels = () => [
+    {
+      model: Project,
+      pluralize: true,
+      foreignKey: 'warehouse_project_id',
+      as: 'project',
+    },
+    {
+      model: Issuance,
+      pluralize: true,
+      foreignKey: 'issuance_id',
+      as: 'issuance',
+    },
+    {
+      model: Unit,
+      pluralize: true,
+      foreignKey: 'warehouse_unit_id',
+      as: 'unit',
+    },
+  ];
 
-  static associate() {}
+  static associate() {
+    Rule.belongsTo(Project, {
+      foreignKey: 'warehouse_project_id',
+    });
+    Rule.belongsTo(Issuance, {
+      foreignKey: 'issuance_id',
+    });
+
+    Rule.belongsTo(Unit, {
+      foreignKey: 'warehouse_unit_id',
+    });
+  }
 
   static async create(values, options) {
     safeMirrorDbHandler(async () => {
