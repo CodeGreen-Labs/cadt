@@ -1,80 +1,12 @@
 {
 	"info": {
-		"_postman_id": "f5aed320-7086-47e5-baea-52af618f07c0",
+		"_postman_id": "7f0861f3-1cca-431b-b2d7-3ef2101a30f1",
 		"name": "Rules API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "188952"
+		"_exporter_id": "14441978",
+		"_collection_link": "https://cloudy-zodiac-792424.postman.co/workspace/Team-Workspace~d9350b2b-ee6d-4c0f-8a7b-71ac7a95110b/collection/14441978-7f0861f3-1cca-431b-b2d7-3ef2101a30f1?action=share&source=collection_link&creator=14441978"
 	},
 	"item": [
-		{
-			"name": "find_all_rules",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/v1/rules",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"v1",
-						"rules"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "find_on_rule",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/v1/rules?cat_id=6800ab4a6e25bf9320a75cf6953a7d2403f597806375db71aea57c71a028e060444",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"v1",
-						"rules"
-					],
-					"query": [
-						{
-							"key": "cat_id",
-							"value": "6800ab4a6e25bf9320a75cf6953a7d2403f597806375db71aea57c71a028e060444"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "create_rule",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"cat_id\": \"6800ab4a6e25bf9320a75cf6953a7d2403f597806375db71aea57c71a028e060444\",\n    \"origin_project_id\": \"e2e-test-333\",\n    \"warehouse_project_id\": \"4eab14ad-a2b1-488b-a584-be5fcb4bbdfb\",\n    \"warehouse_unit_id\": \"bdb5c549-7a56-43bc-beb8-8cd97699174d\",\n    \"issuance_id\": \"9fc0b816-3fa4-4e09-839e-17a8c02c655f\",\n    \"kyc_receiving\": 1,\n    \"kyc_retirement\": 2,\n    \"kyc_sending\": 1\n}\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/v1/rules",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"v1",
-						"rules"
-					]
-				}
-			},
-			"response": []
-		},
 		{
 			"name": "update_rule",
 			"request": {
@@ -123,6 +55,89 @@
 					],
 					"path": [
 						"v1",
+						"rules"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "find_all_rules",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/rules",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"rules"
+					],
+					"query": [
+						{
+							"key": "search",
+							"value": "AXJJFSLGHSHEJ1000-AXJJFSLGHSHEJ1010",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "2",
+							"disabled": true
+						},
+						{
+							"key": "page",
+							"value": "1",
+							"disabled": true
+						},
+						{
+							"key": "filter",
+							"value": "kyc_receiving:1:eq",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "find_one_rule_by_cat_id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/rules/6800ab4a6e25bf9320a75cf6953a7d2403f597806375db71aea57c71a028e097",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"rules",
+						"6800ab4a6e25bf9320a75cf6953a7d2403f597806375db71aea57c71a028e097"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create_rule",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"cat_id\": \"6800ab4a6e25bf9320a75cf6953a7d2403f597806375db71aea57c71a028e097\",\n    \"origin_project_id\": \"e2e-test-003\",\n    \"warehouse_project_id\": \"751ad8a7-7066-4f5d-ac84-9dc41f360643\",\n    \"warehouse_unit_id\": \"cb2ca0a7-042d-4c81-bb93-00c53ca9c3e8\",\n    \"issuance_id\": \"a6745831-5d5e-45ed-b9fe-fd6aa129df25\",\n    \"kyc_receiving\": 1,\n    \"kyc_retirement\": 2,\n    \"kyc_sending\": 1\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/rules",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
 						"rules"
 					]
 				}
