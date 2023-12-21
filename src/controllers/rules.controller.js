@@ -128,7 +128,7 @@ export const update = async (req, res) => {
     await assertIfReadOnlyMode();
     await assertHomeOrgExists();
     await assertNoPendingCommits();
-    await assertRuleRecordExists(req.body.cat_id);
+    const existingRecord = await assertRuleRecordExists(req.body.cat_id);
 
     const updatedRecord = _.cloneDeep(req.body);
 
@@ -138,15 +138,12 @@ export const update = async (req, res) => {
       updatedRecord.kyc_sending,
     ]);
 
-    let stagedRecord = Array.isArray(updatedRecord)
-      ? updatedRecord
-      : [updatedRecord];
-
+    //  Will only be received updated fields, we need to include all the fields for upsetting
     const stagedData = {
       uuid: req.body.cat_id,
       action: 'UPDATE',
       table: Rule.stagingTableName,
-      data: JSON.stringify(stagedRecord),
+      data: JSON.stringify([{ ...existingRecord, ...updatedRecord }]),
     };
 
     await Staging.upsert(stagedData);

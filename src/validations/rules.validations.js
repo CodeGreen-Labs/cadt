@@ -40,6 +40,13 @@ export const rulesPostSchema = Joi.object({
   ...ruleBaseSchema,
 });
 
+export const updateRuleSchema = Joi.object({
+  cat_id: Joi.string().required(),
+  kyc_receiving: Joi.number(),
+  kyc_retirement: Joi.number(),
+  kyc_sending: Joi.number(),
+});
+
 export const rulesDeleteSchema = Joi.object({
   cat_id: Joi.string().required(),
 });

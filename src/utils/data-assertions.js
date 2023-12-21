@@ -272,7 +272,7 @@ export const assertRuleRecordExists = async (catId, customMessage) => {
   if (!record) {
     throw new Error(
       customMessage ||
-        `The unit record for the catId: ${catId} does not exist.`,
+        `The rule record for the catId: ${catId} does not exist.`,
     );
   }
 
@@ -283,8 +283,9 @@ export const assertCredentialLevelRecordExists = async (
   levels,
   customMessage,
 ) => {
-  const uniqueLevels = Array.from(new Set(levels));
-
+  const uniqueLevels = Array.from(new Set(levels)).filter(
+    (level) => level && level,
+  );
   const recordsCount = await CredentialLevel.count({
     raw: true,
     where: { level: { [Op.in]: uniqueLevels } }, // Check if the 'level' column matches any value in the provided array
