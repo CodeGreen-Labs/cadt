@@ -29,19 +29,19 @@ class Rule extends Model {
   static getAssociatedModels = () => [
     {
       model: Project,
-      pluralize: true,
+      pluralize: false,
       foreignKey: 'warehouse_project_id',
       as: 'project',
     },
     {
       model: Issuance,
-      pluralize: true,
+      pluralize: false,
       foreignKey: 'issuance_id',
       as: 'issuance',
     },
     {
       model: Unit,
-      pluralize: true,
+      pluralize: false,
       foreignKey: 'warehouse_unit_id',
       as: 'unit',
     },
@@ -57,6 +57,19 @@ class Rule extends Model {
 
     Rule.belongsTo(Unit, {
       foreignKey: 'warehouse_unit_id',
+    });
+
+    safeMirrorDbHandler(() => {
+      Rule.belongsTo(Project, {
+        foreignKey: 'warehouse_project_id',
+      });
+      Rule.belongsTo(Issuance, {
+        foreignKey: 'issuance_id',
+      });
+
+      Rule.belongsTo(Unit, {
+        foreignKey: 'warehouse_unit_id',
+      });
     });
   }
 
@@ -93,6 +106,7 @@ class Rule extends Model {
       };
       await RuleMirror.upsert(values, mirrorOptions);
     });
+
     return super.upsert(values, options);
   }
 

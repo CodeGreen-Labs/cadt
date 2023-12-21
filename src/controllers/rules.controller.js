@@ -39,7 +39,7 @@ export const create = async (req, res) => {
 
     res.json({
       message: 'Rules staged successfully',
-      uuid: newRecord.cat_id,
+      data: req.body,
       success: true,
     });
   } catch (err) {
@@ -154,6 +154,7 @@ export const update = async (req, res) => {
     res.json({
       message: 'Rule update added to staging',
       success: true,
+      data: req.body,
     });
   } catch (err) {
     res.status(400).json({
