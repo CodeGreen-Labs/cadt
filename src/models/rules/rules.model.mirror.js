@@ -11,8 +11,8 @@ class RuleMirror extends Model {}
 safeMirrorDbHandler(() => {
   RuleMirror.init(ModelTypes, {
     sequelize: sequelizeMirror,
-    modelName: 'project',
-    foreignKey: 'warehouseProjectId',
+    modelName: 'rule',
+    foreignKey: 'cat_id',
     timestamps: true,
     timezone: '+00:00',
     useHooks: true,

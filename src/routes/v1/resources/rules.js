@@ -11,6 +11,7 @@ import {
   rulesDeleteSchema,
   rulesGetQuerySchema,
   rulesPostSchema,
+  updateRuleSchema,
 } from '../../../validations';
 
 RuleRouter.get(
@@ -18,15 +19,11 @@ RuleRouter.get(
   validator.query(rulesGetQuerySchema),
   RuleController.findAll,
 );
-RuleRouter.get(
-  '/:cat_id',
-  validator.query(rulesGetQuerySchema),
-  RuleController.findOne,
-);
+RuleRouter.get('/:cat_id', RuleController.findOne);
 
 RuleRouter.post('/', validator.body(rulesPostSchema), RuleController.create);
 
-RuleRouter.put('/', validator.body(rulesPostSchema), RuleController.update);
+RuleRouter.put('/', validator.body(updateRuleSchema), RuleController.update);
 
 RuleRouter.delete(
   '/',
