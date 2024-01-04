@@ -91,7 +91,7 @@ export const create = async (req, res) => {
       where: { public_key: walletUser.public_key, orgUid },
     });
 
-    await Staging.create({
+    await Staging.upsert({
       uuid: credentialPrimaryKey,
       action: 'INSERT',
       table: Credential.stagingTableName,
