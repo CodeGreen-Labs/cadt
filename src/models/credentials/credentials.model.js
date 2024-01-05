@@ -65,34 +65,28 @@ class Credential extends Model {
   }
 
   static async upsert(values, options) {
+    const { walletUser, ...data } = values;
+
     safeMirrorDbHandler(async () => {
       const mirrorOptions = {
         ...options,
         transaction: options?.mirrorTransaction,
       };
-      await CredentialMirror.upsert(values, mirrorOptions);
+      // if use simulator mode we need to create walletUser before creating credential
+      if (walletUser) await WalletUser.upsert(walletUser);
+
+      await CredentialMirror.upsert(
+        { ...data, commit_status: 'committed' },
+        mirrorOptions,
+      );
     });
 
-    const { id, ...data } = values;
+    if (walletUser) await WalletUser.upsert(walletUser);
 
-    const exist = await super.findByPk(id);
-
-    let result;
-
-    if (exist)
-      result = await super.update(
-        { ...data, commit_status: 'committed' },
-        {
-          ...options,
-          where: { id },
-        },
-      );
-    else {
-      result = await super.upsert(
-        { ...values, commit_status: 'committed' },
-        options,
-      );
-    }
+    const result = await super.upsert(
+      { ...data, commit_status: 'committed' },
+      options,
+    );
 
     Credential.changes.next([
       this.stagingTableName.toLocaleLowerCase(),

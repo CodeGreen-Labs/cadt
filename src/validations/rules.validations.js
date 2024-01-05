@@ -28,10 +28,10 @@ export const rulesGetQuerySchema = Joi.object()
     warehouseProjectId: Joi.string(),
     xls: Joi.boolean(),
     projectIds: Joi.array().items(Joi.string()).single(),
-    order: Joi.string().regex(genericSortColumnRegex),
     filter: Joi.string().regex(genericFilterRegex),
     onlyMarketplaceProjects: Joi.boolean(),
     cat_id: Joi.string(),
+    order: Joi.string().regex(genericSortColumnRegex).default('updatedAt:DESC'), // Adjusted default value
   })
   .with('page', 'limit')
   .with('limit', 'page');

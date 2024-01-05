@@ -91,7 +91,7 @@ export const create = async (req, res) => {
       where: { public_key: walletUser.public_key, orgUid },
     });
 
-    await Staging.create({
+    await Staging.upsert({
       uuid: credentialPrimaryKey,
       action: 'INSERT',
       table: Credential.stagingTableName,
@@ -139,7 +139,8 @@ export const update = async (req, res) => {
     await assertNoPendingCommits();
     const { walletUser, ...credential } = req.body;
     const { id: credentialId, credential_level } = credential;
-    const { wallet_user_id } = await assertCredentialRecordExists(credentialId);
+    const { walletUser: existWalletUserRecord, ...existCredentialRecord } =
+      await assertCredentialRecordExists(credentialId);
 
     if (credential_level) {
       await assertCredentialLevelRecordExists([credential.credential_level]);
@@ -151,13 +152,12 @@ export const update = async (req, res) => {
       table: Credential.stagingTableName,
       data: JSON.stringify([
         {
-          id: credentialId,
-          wallet_user_id,
+          ...existCredentialRecord,
           ...credential,
 
           ...(walletUser && {
             walletUser: {
-              id: wallet_user_id,
+              ...existWalletUserRecord.dataValues,
               ...walletUser,
             },
           }),

@@ -30,7 +30,7 @@ export const create = async (req, res) => {
       newRecord.kyc_sending,
     ]);
 
-    await Staging.create({
+    await Staging.upsert({
       uuid: newRecord.cat_id,
       action: 'INSERT',
       table: Rule.stagingTableName,
