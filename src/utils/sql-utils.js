@@ -1,8 +1,4 @@
-import {
-  genericFilterRegex,
-  genericSortColumnRegex,
-  isArrayRegex,
-} from './string-utils';
+import { genericFilterRegex, isArrayRegex } from './string-utils';
 import { Sequelize } from 'sequelize';
 
 export const getQuery = (filter, order) => {
@@ -24,11 +20,23 @@ export const getQuery = (filter, order) => {
       }
     });
   }
-
-  // Building the order condition
-  if (order?.match(genericSortColumnRegex)) {
-    const matches = order.match(genericSortColumnRegex);
-    orderCondition = [[matches[1], matches[2]]];
+  if (order) {
+    // Fallback for associated table ordering
+    const orderParts = order.split('.');
+    if (orderParts.length === 2) {
+      const fieldParts = orderParts[1].split(':');
+      if (fieldParts.length === 2) {
+        orderCondition = [
+          [orderParts[0], fieldParts[0], fieldParts[1].toUpperCase()],
+        ];
+      }
+    } else {
+      // Fallback for non-associated table ordering
+      const fieldParts = order.split(':');
+      if (fieldParts.length === 2) {
+        orderCondition = [[fieldParts[0], fieldParts[1].toUpperCase()]];
+      }
+    }
   }
 
   return { whereCondition, orderCondition };
