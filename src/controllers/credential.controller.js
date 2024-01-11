@@ -91,27 +91,35 @@ export const create = async (req, res) => {
       where: { public_key: walletUser.public_key, orgUid },
     });
 
+    let newWalletUser;
+
+    if (!walletUserExists) {
+      newWalletUser = { id: walletUserPrimaryKey, ...walletUser, orgUid };
+      await WalletUser.create(newWalletUser);
+    }
+
+    const newCredential = {
+      id: credentialPrimaryKey,
+      credential_level,
+      document_id,
+      expired_date,
+      wallet_user_id: walletUserExists
+        ? walletUserExists.dataValues.id
+        : walletUserPrimaryKey,
+      orgUid,
+    };
+
+    await Credential.create(newCredential);
+
     await Staging.upsert({
       uuid: credentialPrimaryKey,
       action: 'INSERT',
       table: Credential.stagingTableName,
       data: JSON.stringify([
         {
-          id: credentialPrimaryKey,
-          credential_level,
-          document_id,
-          expired_date,
-          wallet_user_id: walletUserExists
-            ? walletUserExists.dataValues.id
-            : walletUserPrimaryKey,
-          orgUid,
-
-          ...(!walletUserExists && {
-            walletUser: {
-              id: walletUserPrimaryKey,
-              ...walletUser,
-              orgUid,
-            },
+          ...newCredential,
+          ...(newWalletUser && {
+            walletUser: newWalletUser,
           }),
         },
       ]),
@@ -145,6 +153,15 @@ export const update = async (req, res) => {
     if (credential_level) {
       await assertCredentialLevelRecordExists([credential.credential_level]);
     }
+
+    await Credential.update(
+      { commit_status: 'staged' },
+      {
+        where: {
+          id: credentialId,
+        },
+      },
+    );
 
     const credentialStagedData = {
       uuid: credentialId,
@@ -206,6 +223,15 @@ export const destroy = async (req, res) => {
         },
       ]),
     };
+
+    await Credential.update(
+      { commit_status: 'staged' },
+      {
+        where: {
+          id: credentialId,
+        },
+      },
+    );
 
     await Staging.upsert(credentialStagedData);
 

@@ -22,11 +22,20 @@ class Credential extends Model {
       pluralize: true,
       foreignKey: 'wallet_user_id',
     },
+    {
+      model: Staging,
+      pluralize: true,
+      foreignKey: 'id',
+    },
   ];
 
   static associate() {
     Credential.belongsTo(WalletUser, {
       foreignKey: 'wallet_user_id',
+    });
+
+    Credential.hasOne(Staging, {
+      foreignKey: 'uuid',
     });
   }
   static async create(values, options) {
@@ -64,6 +73,7 @@ class Credential extends Model {
     return super.destroy(options);
   }
 
+  // Upsert will only be called if the credential is committed.
   static async upsert(values, options) {
     const { walletUser, ...data } = values;
 
@@ -75,7 +85,7 @@ class Credential extends Model {
       // if use simulator mode we need to create walletUser before creating credential
       if (walletUser) await WalletUser.upsert(walletUser);
 
-      await CredentialMirror.upsert(
+      await CredentialMirror.create(
         { ...data, commit_status: 'committed' },
         mirrorOptions,
       );
