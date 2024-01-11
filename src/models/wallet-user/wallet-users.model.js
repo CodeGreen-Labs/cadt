@@ -7,17 +7,9 @@ import * as rxjs from 'rxjs';
 
 import ModelTypes from './wallet-users.model.types.cjs';
 import { WalletUserMirror } from './wallet-users.model.mirror';
-import _ from 'lodash';
-import { Organization, Staging } from '../';
 
-import {
-  createXlsFromSequelizeResults,
-  transformFullXslsToChangeList,
-} from '../../utils/xls';
 import { Credential } from '../';
 
-import dataLayer from '../../datalayer';
-import { keyValueToChangeList } from '../../utils/datalayer-utils';
 import { walletUserPostSchema } from '../../validations';
 class WalletUser extends Model {
   static stagingTableName = 'WalletUsers';
@@ -67,19 +59,8 @@ class WalletUser extends Model {
       await WalletUserMirror.upsert(values, mirrorOptions);
     });
 
-    const { id, ...data } = values;
+    const result = await super.upsert({ ...values }, options);
 
-    const exist = await super.findByPk(id);
-    let result;
-
-    if (exist) {
-      result = await super.update(
-        { ...data },
-        { ...options, where: { id: id } },
-      );
-    } else {
-      result = await super.upsert({ ...values }, options);
-    }
     WalletUser.changes.next([
       this.stagingTableName.toLocaleLowerCase(),
       values.orgUid,
