@@ -38,10 +38,10 @@ class Staging extends Model {
       foreignKey: 'uuid',
       targetKey: 'id',
     });
-    // Staging.belongsTo(Rule, {
-    //   foreignKey: 'uuid',
-    //   targetKey: 'cat_id',
-    // });
+    Staging.belongsTo(Rule, {
+      foreignKey: 'uuid',
+      targetKey: 'cat_id',
+    });
   }
   static async create(values, options) {
     Staging.changes.next(['staging']);

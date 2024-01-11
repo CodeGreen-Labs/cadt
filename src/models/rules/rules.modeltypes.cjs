@@ -1,4 +1,5 @@
 const Sequelize = require('sequelize');
+const shared = require('../shared.types.cjs');
 
 module.exports = {
   cat_id: {
@@ -37,17 +38,8 @@ module.exports = {
     allowNull: false,
   },
   commit_status: {
-    type: Sequelize.STRING, // assuming CommitStatus is a string enum or similar
+    type: Sequelize.ENUM('staged', 'committing', 'committed'),
+    defaultValue: 'staged',
   },
-  last_modified_time: {
-    type: Sequelize.STRING,
-  },
-  createdAt: {
-    type: Sequelize.DATE,
-    defaultValue: Sequelize.NOW,
-  },
-  updatedAt: {
-    type: Sequelize.DATE,
-    defaultValue: Sequelize.NOW,
-  },
+  ...shared,
 };

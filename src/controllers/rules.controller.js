@@ -2,7 +2,7 @@ import _ from 'lodash';
 
 import { Sequelize } from 'sequelize';
 
-import { Rule, Staging } from '../models';
+import { Rule, Staging, Organization } from '../models';
 
 import { paginationParams } from '../utils/helpers';
 
@@ -29,13 +29,17 @@ export const create = async (req, res) => {
       newRecord.kyc_retirement,
       newRecord.kyc_sending,
     ]);
+    const { orgUid } = await Organization.getHomeOrg();
+    console.log(newRecord);
+    await Rule.create({ ...newRecord, commit_status: 'staged', orgUid });
 
-    await Staging.upsert({
-      uuid: newRecord.cat_id,
-      action: 'INSERT',
-      table: Rule.stagingTableName,
-      data: JSON.stringify([newRecord]),
-    });
+    // await Staging.upsert({
+    //   uuid: newRecord.cat_id,
+    //   action: 'INSERT',
+    //   commited: true,
+    //   table: Rule.stagingTableName,
+    //   data: JSON.stringify([newRecord]),
+    // });
 
     res.json({
       message: 'Rules staged successfully',
@@ -137,7 +141,14 @@ export const update = async (req, res) => {
       updatedRecord.kyc_retirement,
       updatedRecord.kyc_sending,
     ]);
-
+    await Rule.update(
+      { commit_status: 'staged' },
+      {
+        where: {
+          cat_id: existingRecord.cat_id,
+        },
+      },
+    );
     //  Will only be received updated fields, we need to include all the fields for upsetting
     const stagedData = {
       uuid: req.body.cat_id,
@@ -167,13 +178,22 @@ export const destroy = async (req, res) => {
     await assertIfReadOnlyMode();
     await assertHomeOrgExists();
     await assertNoPendingCommits();
-    await assertRuleRecordExists(req.body.cat_id);
+    const existingRecord = await assertRuleRecordExists(req.body.cat_id);
 
     const stagedData = {
       uuid: req.body.cat_id,
       action: 'DELETE',
       table: Rule.stagingTableName,
     };
+
+    await Rule.update(
+      { commit_status: 'staged' },
+      {
+        where: {
+          cat_id: existingRecord.cat_id,
+        },
+      },
+    );
 
     await Staging.upsert(stagedData);
     res.json({

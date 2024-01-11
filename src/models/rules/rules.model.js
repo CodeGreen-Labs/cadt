@@ -45,6 +45,11 @@ class Rule extends Model {
       foreignKey: 'warehouse_unit_id',
       as: 'unit',
     },
+    {
+      model: Staging,
+      pluralize: false,
+      foreignKey: 'cat_id',
+    },
   ];
 
   static associate() {
@@ -58,6 +63,9 @@ class Rule extends Model {
     Rule.belongsTo(Unit, {
       foreignKey: 'warehouse_unit_id',
     });
+    Rule.hasOne(Staging, {
+      foreignKey: 'uuid',
+    });
 
     safeMirrorDbHandler(() => {
       Rule.belongsTo(Project, {
@@ -69,6 +77,9 @@ class Rule extends Model {
 
       Rule.belongsTo(Unit, {
         foreignKey: 'warehouse_unit_id',
+      });
+      Rule.hasOne(Staging, {
+        foreignKey: 'uuid',
       });
     });
   }
@@ -98,16 +109,20 @@ class Rule extends Model {
     return super.destroy(options);
   }
 
+  // Upsert will only be called if the rule is committed.
   static async upsert(values, options) {
     safeMirrorDbHandler(async () => {
       const mirrorOptions = {
         ...options,
         transaction: options?.mirrorTransaction,
       };
-      await RuleMirror.upsert(values, mirrorOptions);
+      await RuleMirror.upsert(
+        { ...values, commit_status: 'committed' },
+        mirrorOptions,
+      );
     });
 
-    return super.upsert(values, options);
+    return super.upsert({ ...values, commit_status: 'committed' }, options);
   }
 
   static async fts(searchStr, orgUid, pagination, columns = []) {
