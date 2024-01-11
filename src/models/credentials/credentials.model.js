@@ -37,6 +37,15 @@ class Credential extends Model {
     Credential.hasOne(Staging, {
       foreignKey: 'uuid',
     });
+    safeMirrorDbHandler(() => {
+      Credential.belongsTo(WalletUser, {
+        foreignKey: 'wallet_user_id',
+      });
+
+      Credential.hasOne(Staging, {
+        foreignKey: 'uuid',
+      });
+    });
   }
   static async create(values, options) {
     safeMirrorDbHandler(async () => {
