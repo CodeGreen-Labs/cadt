@@ -111,18 +111,20 @@ class Rule extends Model {
 
   // Upsert will only be called if the rule is committed.
   static async upsert(values, options) {
+    const newRecord = {
+      ...values,
+      commit_status: 'committed',
+      updatedAt: new Date(),
+    };
     safeMirrorDbHandler(async () => {
       const mirrorOptions = {
         ...options,
         transaction: options?.mirrorTransaction,
       };
-      await RuleMirror.upsert(
-        { ...values, commit_status: 'committed' },
-        mirrorOptions,
-      );
+      await RuleMirror.upsert(newRecord, mirrorOptions);
     });
 
-    return super.upsert({ ...values, commit_status: 'committed' }, options);
+    return super.upsert(newRecord, options);
   }
 
   static async fts(searchStr, orgUid, pagination, columns = []) {

@@ -85,7 +85,11 @@ class Credential extends Model {
   // Upsert will only be called if the credential is committed.
   static async upsert(values, options) {
     const { walletUser, ...data } = values;
-
+    const newRecord = {
+      ...data,
+      commit_status: 'committed',
+      updatedAt: new Date(),
+    };
     safeMirrorDbHandler(async () => {
       const mirrorOptions = {
         ...options,
@@ -94,18 +98,12 @@ class Credential extends Model {
       // if use simulator mode we need to create walletUser before creating credential
       if (walletUser) await WalletUser.upsert(walletUser);
 
-      await CredentialMirror.create(
-        { ...data, commit_status: 'committed' },
-        mirrorOptions,
-      );
+      await CredentialMirror.upsert(newRecord, mirrorOptions);
     });
 
     if (walletUser) await WalletUser.upsert(walletUser);
 
-    const result = await super.upsert(
-      { ...data, commit_status: 'committed' },
-      options,
-    );
+    const result = await super.upsert(newRecord, options);
 
     Credential.changes.next([
       this.stagingTableName.toLocaleLowerCase(),
