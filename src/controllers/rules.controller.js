@@ -156,7 +156,9 @@ export const update = async (req, res) => {
       uuid: req.body.cat_id,
       action: 'UPDATE',
       table: Rule.stagingTableName,
-      data: JSON.stringify([{ ...existingRecord, ...updatedRecord }]),
+      data: JSON.stringify([
+        { ...existingRecord, ...updatedRecord, commit_status: 'staged' },
+      ]),
     };
 
     await Staging.upsert(stagedData);

@@ -122,6 +122,7 @@ export const create = async (req, res) => {
       data: JSON.stringify([
         {
           ...newCredential,
+          commit_status: 'staged',
           ...(newWalletUser && {
             walletUser: newWalletUser,
           }),
@@ -175,7 +176,7 @@ export const update = async (req, res) => {
         {
           ...existCredentialRecord,
           ...credential,
-
+          commit_status: 'staged',
           ...(walletUser && {
             walletUser: {
               ...existWalletUserRecord.dataValues,
