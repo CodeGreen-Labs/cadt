@@ -10,6 +10,7 @@ import {
 import { Sequelize } from 'sequelize';
 import { paginationParams } from '../utils/helpers';
 import { getQuery } from '../utils/sql-utils';
+import { transformResult, transformStagingData } from '../utils/format-utils';
 
 export const findAll = async (req, res) => {
   try {
@@ -41,7 +42,7 @@ export const findAll = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: credentials,
+      data: transformResult(credentials),
     });
   } catch (error) {
     res.status(400).json({
@@ -62,7 +63,10 @@ export const findByWalletAddress = async (req, res) => {
 
     res.json({
       success: true,
-      data: result,
+      data: {
+        ...result.dataValues,
+        staging: transformStagingData(result.staging),
+      },
     });
   } catch (error) {
     res.status(400).json({

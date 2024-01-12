@@ -15,7 +15,7 @@ import {
 } from '../utils/data-assertions';
 
 import { getQuery } from '../utils/sql-utils';
-
+import { transformResult, transformStagingData } from '../utils/format-utils';
 export const create = async (req, res) => {
   try {
     await assertIfReadOnlyMode();
@@ -30,16 +30,15 @@ export const create = async (req, res) => {
       newRecord.kyc_sending,
     ]);
     const { orgUid } = await Organization.getHomeOrg();
-    console.log(newRecord);
     await Rule.create({ ...newRecord, commit_status: 'staged', orgUid });
 
-    // await Staging.upsert({
-    //   uuid: newRecord.cat_id,
-    //   action: 'INSERT',
-    //   commited: true,
-    //   table: Rule.stagingTableName,
-    //   data: JSON.stringify([newRecord]),
-    // });
+    await Staging.upsert({
+      uuid: newRecord.cat_id,
+      action: 'INSERT',
+      commited: true,
+      table: Rule.stagingTableName,
+      data: JSON.stringify([newRecord]),
+    });
 
     res.json({
       message: 'Rules staged successfully',
@@ -94,7 +93,7 @@ export const findAll = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: rules,
+      data: transformResult(rules),
     });
   } catch (error) {
     console.trace(error);
@@ -116,7 +115,10 @@ export const findOne = async (req, res) => {
 
     res.json({
       success: true,
-      data: result,
+      data: {
+        ...result.dataValues,
+        staging: transformStagingData(result.staging),
+      },
     });
   } catch (error) {
     res.status(400).json({
