@@ -33,7 +33,16 @@ import {
 
 class Staging extends Model {
   static changes = new rxjs.Subject();
-
+  static associate() {
+    Staging.belongsTo(Credential, {
+      foreignKey: 'uuid',
+      targetKey: 'id',
+    });
+    Staging.belongsTo(Rule, {
+      foreignKey: 'uuid',
+      targetKey: 'cat_id',
+    });
+  }
   static async create(values, options) {
     Staging.changes.next(['staging']);
     return super.create(values, options);
@@ -45,7 +54,6 @@ class Staging extends Model {
   }
 
   static async upsert(values, options) {
-    console.log('upserting', values);
     Staging.changes.next(['staging']);
     return super.upsert(values, options);
   }

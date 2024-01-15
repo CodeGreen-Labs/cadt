@@ -12,10 +12,8 @@ safeMirrorDbHandler(() => {
   RuleMirror.init(ModelTypes, {
     sequelize: sequelizeMirror,
     modelName: 'rule',
-    foreignKey: 'cat_id',
     timestamps: true,
     timezone: '+00:00',
-    useHooks: true,
     define: {
       charset: 'utf8mb4',
       collate: 'utf8mb4_general_ci',
@@ -25,6 +23,8 @@ safeMirrorDbHandler(() => {
       dateStrings: true,
       typeCast: true,
     },
+    createdAt: true,
+    updatedAt: true,
   });
 });
 

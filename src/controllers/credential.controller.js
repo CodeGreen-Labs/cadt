@@ -10,6 +10,7 @@ import {
 import { Sequelize } from 'sequelize';
 import { paginationParams } from '../utils/helpers';
 import { getQuery } from '../utils/sql-utils';
+import { transformResult, transformStagingData } from '../utils/format-utils';
 
 export const findAll = async (req, res) => {
   try {
@@ -41,7 +42,7 @@ export const findAll = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: credentials,
+      data: transformResult(credentials),
     });
   } catch (error) {
     res.status(400).json({
@@ -62,7 +63,10 @@ export const findByWalletAddress = async (req, res) => {
 
     res.json({
       success: true,
-      data: result,
+      data: {
+        ...result.dataValues,
+        staging: transformStagingData(result.staging),
+      },
     });
   } catch (error) {
     res.status(400).json({
@@ -91,27 +95,36 @@ export const create = async (req, res) => {
       where: { public_key: walletUser.public_key, orgUid },
     });
 
+    let newWalletUser;
+
+    if (!walletUserExists) {
+      newWalletUser = { id: walletUserPrimaryKey, ...walletUser, orgUid };
+      await WalletUser.create(newWalletUser);
+    }
+
+    const newCredential = {
+      id: credentialPrimaryKey,
+      credential_level,
+      document_id,
+      expired_date,
+      wallet_user_id: walletUserExists
+        ? walletUserExists.dataValues.id
+        : walletUserPrimaryKey,
+      orgUid,
+    };
+
+    await Credential.create(newCredential);
+
     await Staging.upsert({
       uuid: credentialPrimaryKey,
       action: 'INSERT',
       table: Credential.stagingTableName,
       data: JSON.stringify([
         {
-          id: credentialPrimaryKey,
-          credential_level,
-          document_id,
-          expired_date,
-          wallet_user_id: walletUserExists
-            ? walletUserExists.dataValues.id
-            : walletUserPrimaryKey,
-          orgUid,
-
-          ...(!walletUserExists && {
-            walletUser: {
-              id: walletUserPrimaryKey,
-              ...walletUser,
-              orgUid,
-            },
+          ...newCredential,
+          commit_status: 'staged',
+          ...(newWalletUser && {
+            walletUser: newWalletUser,
           }),
         },
       ]),
@@ -146,6 +159,15 @@ export const update = async (req, res) => {
       await assertCredentialLevelRecordExists([credential.credential_level]);
     }
 
+    await Credential.update(
+      { commit_status: 'staged' },
+      {
+        where: {
+          id: credentialId,
+        },
+      },
+    );
+
     const credentialStagedData = {
       uuid: credentialId,
       action: 'UPDATE',
@@ -154,7 +176,7 @@ export const update = async (req, res) => {
         {
           ...existCredentialRecord,
           ...credential,
-
+          commit_status: 'staged',
           ...(walletUser && {
             walletUser: {
               ...existWalletUserRecord.dataValues,
@@ -206,6 +228,15 @@ export const destroy = async (req, res) => {
         },
       ]),
     };
+
+    await Credential.update(
+      { commit_status: 'staged' },
+      {
+        where: {
+          id: credentialId,
+        },
+      },
+    );
 
     await Staging.upsert(credentialStagedData);
 

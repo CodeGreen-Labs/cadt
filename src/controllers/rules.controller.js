@@ -2,7 +2,7 @@ import _ from 'lodash';
 
 import { Sequelize } from 'sequelize';
 
-import { Rule, Staging } from '../models';
+import { Rule, Staging, Organization } from '../models';
 
 import { paginationParams } from '../utils/helpers';
 
@@ -15,7 +15,7 @@ import {
 } from '../utils/data-assertions';
 
 import { getQuery } from '../utils/sql-utils';
-
+import { transformResult, transformStagingData } from '../utils/format-utils';
 export const create = async (req, res) => {
   try {
     await assertIfReadOnlyMode();
@@ -29,10 +29,13 @@ export const create = async (req, res) => {
       newRecord.kyc_retirement,
       newRecord.kyc_sending,
     ]);
+    const { orgUid } = await Organization.getHomeOrg();
+    await Rule.create({ ...newRecord, commit_status: 'staged', orgUid });
 
     await Staging.upsert({
       uuid: newRecord.cat_id,
       action: 'INSERT',
+      commited: true,
       table: Rule.stagingTableName,
       data: JSON.stringify([newRecord]),
     });
@@ -90,7 +93,7 @@ export const findAll = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: rules,
+      data: transformResult(rules),
     });
   } catch (error) {
     console.trace(error);
@@ -112,7 +115,10 @@ export const findOne = async (req, res) => {
 
     res.json({
       success: true,
-      data: result,
+      data: {
+        ...result.dataValues,
+        staging: transformStagingData(result.staging),
+      },
     });
   } catch (error) {
     res.status(400).json({
@@ -137,13 +143,22 @@ export const update = async (req, res) => {
       updatedRecord.kyc_retirement,
       updatedRecord.kyc_sending,
     ]);
-
+    await Rule.update(
+      { commit_status: 'staged' },
+      {
+        where: {
+          cat_id: existingRecord.cat_id,
+        },
+      },
+    );
     //  Will only be received updated fields, we need to include all the fields for upsetting
     const stagedData = {
       uuid: req.body.cat_id,
       action: 'UPDATE',
       table: Rule.stagingTableName,
-      data: JSON.stringify([{ ...existingRecord, ...updatedRecord }]),
+      data: JSON.stringify([
+        { ...existingRecord, ...updatedRecord, commit_status: 'staged' },
+      ]),
     };
 
     await Staging.upsert(stagedData);
@@ -167,13 +182,22 @@ export const destroy = async (req, res) => {
     await assertIfReadOnlyMode();
     await assertHomeOrgExists();
     await assertNoPendingCommits();
-    await assertRuleRecordExists(req.body.cat_id);
+    const existingRecord = await assertRuleRecordExists(req.body.cat_id);
 
     const stagedData = {
       uuid: req.body.cat_id,
       action: 'DELETE',
       table: Rule.stagingTableName,
     };
+
+    await Rule.update(
+      { commit_status: 'staged' },
+      {
+        where: {
+          cat_id: existingRecord.cat_id,
+        },
+      },
+    );
 
     await Staging.upsert(stagedData);
     res.json({
