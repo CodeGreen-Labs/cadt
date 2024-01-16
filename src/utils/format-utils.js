@@ -3,7 +3,6 @@ import _ from 'lodash';
 export const transformStagingData = (staging) => {
   if (!staging) return staging;
   const workingData = _.cloneDeep(staging.dataValues);
-  console.log('workingData', workingData);
   return {
     ...workingData,
     data: JSON.parse(workingData.data)[0],
