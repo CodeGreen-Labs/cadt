@@ -6,17 +6,27 @@ export const getQuery = (filter, order) => {
   let orderCondition = [];
 
   if (filter) {
-    // Split the filter string by semicolon to handle multiple filters
     const filterParts = filter.split(';');
     filterParts.forEach((filterPart) => {
       const matches = filterPart.match(genericFilterRegex);
       if (matches) {
-        const valueMatches = matches[2].match(isArrayRegex);
-        whereCondition[matches[1]] = {
-          [Sequelize.Op[matches[3]]]: valueMatches
-            ? JSON.parse(matches[2].replace(/'/g, '"')) // replace single quotes with double quotes for valid JSON
-            : matches[2],
-        };
+        const keyParts = filterPart.split(':')[0];
+        let value = matches[2];
+        const operator = Sequelize.Op[matches[3]];
+        // Convert 'true'/'false' strings to boolean values
+        if (value === 'true') value = true;
+        if (value === 'false') value = false;
+
+        if (keyParts?.split('.').length === 2) {
+          whereCondition[`$${keyParts}$`] = {
+            [operator]: Boolean(value),
+          };
+        } else {
+          // Non-associated table filter
+          whereCondition[matches[1]] = {
+            [operator]: value,
+          };
+        }
       }
     });
   }
