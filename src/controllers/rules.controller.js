@@ -35,7 +35,6 @@ export const create = async (req, res) => {
     await Staging.upsert({
       uuid: newRecord.cat_id,
       action: 'INSERT',
-      commited: true,
       table: Rule.stagingTableName,
       data: JSON.stringify([newRecord]),
     });

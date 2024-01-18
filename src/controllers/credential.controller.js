@@ -15,6 +15,7 @@ import { transformResult, transformStagingData } from '../utils/format-utils';
 export const findAll = async (req, res) => {
   try {
     let { page, limit, search, orgUid, filter, order } = req.query;
+    console.log('findAll', page, limit, search, orgUid, filter);
 
     let where = {};
     if (search) {
@@ -39,7 +40,7 @@ export const findAll = async (req, res) => {
       order: orderCondition,
       ...pagination,
     });
-
+    console.log(transformResult(credentials).walletUser);
     res.status(200).json({
       success: true,
       data: transformResult(credentials),
