@@ -4,14 +4,14 @@ import Sequelize from 'sequelize';
 const { Model } = Sequelize;
 
 import { sequelizeMirror, safeMirrorDbHandler } from '../../database';
-import ModelTypes from './credential-levels.model.types.cjs';
+import ModelTypes from './credential-types.model.types.cjs';
 
-class CredentialLevelMirror extends Model {}
+class CredentialTypeMirror extends Model {}
 
 safeMirrorDbHandler(() => {
-  CredentialLevelMirror.init(ModelTypes, {
+  CredentialTypeMirror.init(ModelTypes, {
     sequelize: sequelizeMirror,
-    modelName: 'credentialLevel',
+    modelName: 'CredentialType',
     timestamps: true,
     timezone: '+00:00',
     define: {
@@ -27,4 +27,4 @@ safeMirrorDbHandler(() => {
     updatedAt: true,
   });
 });
-export { CredentialLevelMirror };
+export { CredentialTypeMirror };

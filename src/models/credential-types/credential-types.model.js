@@ -1,9 +1,9 @@
 import Sequelize from 'sequelize';
 const { Model } = Sequelize;
-import ModelTypes from './credential-levels.model.types.cjs';
+import ModelTypes from './credential-types.model.types.cjs';
 import { safeMirrorDbHandler, sequelize } from '../../database';
 
-class CredentialLevel extends Model {
+class CredentialType extends Model {
   static associate() {}
 
   static async create(values, options) {
@@ -12,7 +12,7 @@ class CredentialLevel extends Model {
         ...options,
         transaction: options?.mirrorTransaction,
       };
-      await CredentialLevel.create(values, mirrorOptions);
+      await CredentialType.create(values, mirrorOptions);
     });
     return super.create(values, options);
   }
@@ -23,7 +23,7 @@ class CredentialLevel extends Model {
         ...options,
         transaction: options?.mirrorTransaction,
       };
-      await CredentialLevel.destroy(mirrorOptions);
+      await CredentialType.destroy(mirrorOptions);
     });
     return super.destroy(options);
   }
@@ -34,17 +34,17 @@ class CredentialLevel extends Model {
         ...options,
         transaction: options?.mirrorTransaction,
       };
-      await CredentialLevel.upsert(values, mirrorOptions);
+      await CredentialType.upsert(values, mirrorOptions);
     });
     return super.upsert(values, options);
   }
 }
 
-CredentialLevel.init(ModelTypes, {
+CredentialType.init(ModelTypes, {
   sequelize,
-  modelName: 'credentialLevel',
-  tableName: 'credential_levels',
+  modelName: 'CredentialType',
+  tableName: 'credential_types',
   timestamps: true,
 });
 
-export { CredentialLevel };
+export { CredentialType };

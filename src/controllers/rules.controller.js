@@ -7,7 +7,7 @@ import { Rule, Staging, Organization } from '../models';
 import { paginationParams } from '../utils/helpers';
 
 import {
-  assertCredentialLevelRecordExists,
+  assertCredentialTypeRecordExists,
   assertHomeOrgExists,
   assertIfReadOnlyMode,
   assertNoPendingCommits,
@@ -24,7 +24,7 @@ export const create = async (req, res) => {
 
     const newRecord = _.cloneDeep(req.body);
 
-    await assertCredentialLevelRecordExists([
+    await assertCredentialTypeRecordExists([
       newRecord.kyc_receiving,
       newRecord.kyc_retirement,
       newRecord.kyc_sending,
@@ -138,7 +138,7 @@ export const update = async (req, res) => {
 
     const updatedRecord = _.cloneDeep(req.body);
 
-    await assertCredentialLevelRecordExists([
+    await assertCredentialTypeRecordExists([
       updatedRecord.kyc_receiving,
       updatedRecord.kyc_retirement,
       updatedRecord.kyc_sending,

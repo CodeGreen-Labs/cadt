@@ -9,8 +9,8 @@ module.exports = {
     primaryKey: true,
     unique: true,
   },
-  credential_level: {
-    type: Sequelize.INTEGER,
+  credential_type: {
+    type: Sequelize.STRING,
     allowNull: false,
   },
 

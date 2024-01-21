@@ -9,5 +9,5 @@ export * from './projects';
 export * from './rules';
 export * from './staging';
 export * from './units';
-export * from './credential-level';
+export * from './credential-type';
 export * from './credential';

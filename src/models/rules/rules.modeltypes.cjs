@@ -26,15 +26,15 @@ module.exports = {
   },
 
   kyc_receiving: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     allowNull: false,
   },
   kyc_retirement: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     allowNull: false,
   },
   kyc_sending: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     allowNull: false,
   },
   commit_status: {

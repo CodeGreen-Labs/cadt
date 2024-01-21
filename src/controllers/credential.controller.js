@@ -4,7 +4,7 @@ import {
   assertHomeOrgExists,
   assertNoPendingCommits,
   assertIfReadOnlyMode,
-  assertCredentialLevelRecordExists,
+  assertCredentialTypeRecordExists,
   assertCredentialRecordExists,
 } from '../utils/data-assertions';
 import { Sequelize } from 'sequelize';
@@ -85,7 +85,7 @@ export const create = async (req, res) => {
 
     const { walletUser, credential_level, document_id, expired_date } =
       req.body;
-    await assertCredentialLevelRecordExists([credential_level]);
+    await assertCredentialTypeRecordExists([credential_level]);
     const { orgUid } = await Organization.getHomeOrg();
 
     const credentialPrimaryKey = uuid();
@@ -156,7 +156,7 @@ export const update = async (req, res) => {
       await assertCredentialRecordExists(credentialId);
 
     if (credential_level) {
-      await assertCredentialLevelRecordExists([credential.credential_level]);
+      await assertCredentialTypeRecordExists([credential.credential_level]);
     }
 
     await Credential.update(

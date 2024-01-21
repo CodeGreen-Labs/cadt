@@ -4,7 +4,7 @@ import _ from 'lodash';
 import { Op } from 'sequelize';
 import datalayer from '../datalayer';
 import {
-  CredentialLevel,
+  CredentialType,
   Meta,
   Organization,
   Project,
@@ -279,14 +279,14 @@ export const assertRuleRecordExists = async (catId, customMessage) => {
   return record.dataValues;
 };
 
-export const assertCredentialLevelRecordExists = async (
+export const assertCredentialTypeRecordExists = async (
   levels,
   customMessage,
 ) => {
   const uniqueLevels = Array.from(new Set(levels)).filter(
     (level) => level && level,
   );
-  const recordsCount = await CredentialLevel.count({
+  const recordsCount = await CredentialType.count({
     raw: true,
     where: { level: { [Op.in]: uniqueLevels } }, // Check if the 'level' column matches any value in the provided array
   });

@@ -1,7 +1,7 @@
 import SeedProjects from './20211209204301-add-projects';
 import SeedUnits from './20211209205139-add-units';
 import SeedOrgs from './20220121232631-add-test-organization';
-import CredentialLevels from './add-credential-levels';
+import CredentialTypes from './add-credential-types';
 
 export const seeders = [
   {
@@ -17,8 +17,8 @@ export const seeders = [
     name: '20220121232631-add-test-organization',
   },
   {
-    seed: CredentialLevels,
-    name: 'create-credential-levels',
+    seed: CredentialTypes,
+    name: 'create-credential-types',
     isDefault: true,
   },
 ];

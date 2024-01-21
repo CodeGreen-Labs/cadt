@@ -10,7 +10,7 @@ import { RelatedProject } from './related-projects';
 import { Rule } from './rules';
 import { Unit } from './units';
 import { Credential } from './credentials';
-import { CredentialLevel } from './credential-levels';
+import { CredentialType } from './credential-types';
 import { WalletUser } from './wallet-user';
 
 Project.associate();
@@ -23,7 +23,7 @@ Unit.associate();
 Issuance.associate();
 Estimation.associate();
 Credential.associate();
-CredentialLevel.associate();
+CredentialType.associate();
 WalletUser.associate();
 Rule.associate();
 
@@ -46,7 +46,7 @@ export * from './simulator';
 export * from './staging';
 export * from './units';
 export * from './credentials';
-export * from './credential-levels';
+export * from './credential-types';
 export * from './wallet-user';
 
 export const ModelKeys = {

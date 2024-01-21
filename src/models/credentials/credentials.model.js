@@ -3,7 +3,7 @@ const { Model } = Sequelize;
 import _ from 'lodash';
 import * as rxjs from 'rxjs';
 import ModelTypes from './credentials.model.types.cjs';
-import { WalletUser, Staging } from '../';
+import { WalletUser, Staging, CredentialType } from '../';
 import { CredentialMirror } from './credentials.model.mirror';
 import { sequelize, safeMirrorDbHandler } from '../../database';
 import { transformStageToCommitData } from '../../utils/model-utils.js';
@@ -37,6 +37,7 @@ class Credential extends Model {
     Credential.hasOne(Staging, {
       foreignKey: 'uuid',
     });
+
     safeMirrorDbHandler(() => {
       Credential.belongsTo(WalletUser, {
         foreignKey: 'wallet_user_id',

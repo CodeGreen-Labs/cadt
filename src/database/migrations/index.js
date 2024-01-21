@@ -32,7 +32,7 @@ import AddIsTransferColumn from './20220825124702-add-isTransfer-column';
 import AddOrgMetadata from './20220831023546-add-org-metadata';
 import OrgSyncStatus from './20231020201652-OrgSyncStatus';
 import OrgSyncRemaining from './20231020214357-OrgSyncRemainingCount';
-import CreateCredentialLevelTable from './create-credential-level-table';
+import CreateCredentialTypeTable from './create-credential-type-table';
 import CreateWalletUsersTable from './create-wallet-user-table';
 import CreateCredentialTable from './create-credential-table';
 import CreateRules from './create-rules';
@@ -179,8 +179,8 @@ export const migrations = [
     name: '20231020214357-OrgSyncRemainingCount',
   },
   {
-    migration: CreateCredentialLevelTable,
-    name: 'create-credential-levels',
+    migration: CreateCredentialTypeTable,
+    name: 'create-credential-types',
   },
   {
     migration: CreateWalletUsersTable,
