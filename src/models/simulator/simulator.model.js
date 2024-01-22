@@ -37,7 +37,10 @@ class Simulator extends Model {
     const diff = [];
 
     for (const staging of data) {
-      const lowerTable = staging.table.toLowerCase();
+      const excludesLowerCaseNames = ['credentialType'];
+      const lowerTable = excludesLowerCaseNames.includes(staging.table)
+        ? staging.table
+        : staging.table.toLowerCase();
       const modelKey = ModelKeys[lowerTable];
       const array = [];
 
