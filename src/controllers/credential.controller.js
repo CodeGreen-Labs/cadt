@@ -39,7 +39,6 @@ export const findAll = async (req, res) => {
       order: orderCondition,
       ...pagination,
     });
-
     res.status(200).json({
       success: true,
       data: transformResult(credentials),
