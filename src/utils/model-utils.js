@@ -83,7 +83,6 @@ export async function getDeletedItems(
 
 export function transformStageToCommitData(stageData, primaryKeys = {}) {
   const commitData = {};
-
   stageData.forEach((item) => {
     const changes = JSON.parse(item.data);
     const action = item.action.toLowerCase();
@@ -99,7 +98,7 @@ export function transformStageToCommitData(stageData, primaryKeys = {}) {
         : mainTableName;
 
       for (const key in change) {
-        const excludesLowerCaseName = ['walletUser'];
+        const excludesLowerCaseName = ['walletUser', 'credentialType'];
         const tableName = excludesLowerCaseName.includes(key)
           ? key
           : key.toLowerCase();
