@@ -11,9 +11,9 @@ export const ruleBaseSchema = {
   warehouse_unit_id: Joi.string().required(),
   issuance_id: Joi.string().required(),
   cat_id: Joi.string().required(),
-  kyc_receiving: Joi.number().required(),
-  kyc_retirement: Joi.number().required(),
-  kyc_sending: Joi.number().required(),
+  kyc_receiving: Joi.string().required(),
+  kyc_retirement: Joi.string().required(),
+  kyc_sending: Joi.string().required(),
   commit_status: Joi.object().optional(),
   last_modified_time: Joi.string().allow(null).optional(),
 };

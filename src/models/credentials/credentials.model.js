@@ -3,7 +3,7 @@ const { Model } = Sequelize;
 import _ from 'lodash';
 import * as rxjs from 'rxjs';
 import ModelTypes from './credentials.model.types.cjs';
-import { WalletUser, Staging, CredentialType } from '../';
+import { WalletUser, Staging } from '../';
 import { CredentialMirror } from './credentials.model.mirror';
 import { sequelize, safeMirrorDbHandler } from '../../database';
 import { transformStageToCommitData } from '../../utils/model-utils.js';

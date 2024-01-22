@@ -9,10 +9,15 @@ module.exports = {
     defaultValue: uuidv4,
     primaryKey: true,
   },
+  orgUid: {
+    type: Sequelize.STRING,
+    required: true,
+    allowNull: false,
+    defaultValue: 'default',
+  },
   name: {
     type: Sequelize.STRING,
     required: true,
-    unique: true,
   },
   description: {
     type: Sequelize.STRING,
@@ -24,5 +29,9 @@ module.exports = {
   updatedAt: {
     type: Sequelize.DATE,
     defaultValue: Sequelize.NOW,
+  },
+  commit_status: {
+    type: Sequelize.ENUM('staged', 'committing', 'committed'),
+    defaultValue: 'staged',
   },
 };

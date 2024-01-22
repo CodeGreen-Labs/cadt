@@ -6,6 +6,7 @@ export default [
     name: 'Basic Credential',
     createdAt: new Date(),
     updatedAt: new Date(),
+    commit_status: 'committed',
   },
 
   {
@@ -13,5 +14,6 @@ export default [
     name: 'Super Credential',
     createdAt: new Date(),
     updatedAt: new Date(),
+    commit_status: 'committed',
   },
 ];

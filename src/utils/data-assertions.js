@@ -280,19 +280,17 @@ export const assertRuleRecordExists = async (catId, customMessage) => {
 };
 
 export const assertCredentialTypeRecordExists = async (
-  levels,
+  typeIds,
   customMessage,
 ) => {
-  const uniqueLevels = Array.from(new Set(levels)).filter(
-    (level) => level && level,
-  );
+  const uniqueTypes = Array.from(new Set(typeIds));
   const recordsCount = await CredentialType.count({
     raw: true,
-    where: { level: { [Op.in]: uniqueLevels } }, // Check if the 'level' column matches any value in the provided array
+    where: { id: { [Op.in]: uniqueTypes }, commit_status: 'committed' }, // Check if the 'id' column matches any value in the provided array
   });
 
-  if (recordsCount !== uniqueLevels.length) {
-    throw new Error(customMessage || `The credential levels do not exist.`);
+  if (recordsCount !== uniqueTypes.length) {
+    throw new Error(customMessage || `The credential type do not exist.`);
   }
 
   // Assuming you want to return an array of dataValues for each matching record

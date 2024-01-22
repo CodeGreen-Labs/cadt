@@ -83,10 +83,9 @@ export const create = async (req, res) => {
     await assertHomeOrgExists();
     await assertNoPendingCommits();
 
-    const { walletUser, credential_level, document_id, expired_date } =
-      req.body;
-    await assertCredentialTypeRecordExists([credential_level]);
+    const { walletUser, credential_type, document_id, expired_date } = req.body;
     const { orgUid } = await Organization.getHomeOrg();
+    await assertCredentialTypeRecordExists([credential_type]);
 
     const credentialPrimaryKey = uuid();
     const walletUserPrimaryKey = uuid();
@@ -104,7 +103,7 @@ export const create = async (req, res) => {
 
     const newCredential = {
       id: credentialPrimaryKey,
-      credential_level,
+      credential_type,
       document_id,
       expired_date,
       wallet_user_id: walletUserExists
@@ -151,12 +150,12 @@ export const update = async (req, res) => {
     await assertHomeOrgExists();
     await assertNoPendingCommits();
     const { walletUser, ...credential } = req.body;
-    const { id: credentialId, credential_level } = credential;
+    const { id: credentialId, credential_type } = credential;
     const { walletUser: existWalletUserRecord, ...existCredentialRecord } =
       await assertCredentialRecordExists(credentialId);
 
-    if (credential_level) {
-      await assertCredentialTypeRecordExists([credential.credential_level]);
+    if (credential_type) {
+      await assertCredentialTypeRecordExists([credential.credential_type]);
     }
 
     await Credential.update(

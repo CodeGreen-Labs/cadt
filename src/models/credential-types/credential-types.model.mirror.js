@@ -5,13 +5,13 @@ const { Model } = Sequelize;
 
 import { sequelizeMirror, safeMirrorDbHandler } from '../../database';
 import ModelTypes from './credential-types.model.types.cjs';
-
 class CredentialTypeMirror extends Model {}
 
 safeMirrorDbHandler(() => {
   CredentialTypeMirror.init(ModelTypes, {
     sequelize: sequelizeMirror,
-    modelName: 'CredentialType',
+    modelName: 'credentialType',
+    tableName: 'credential_types',
     timestamps: true,
     timezone: '+00:00',
     define: {

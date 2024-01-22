@@ -9,7 +9,7 @@ const baseCredentialSchema = {
 
   expired_date: Joi.string().required(),
 
-  credential_level: Joi.number().required(),
+  credential_type: Joi.string().required(),
 
   walletUser: {
     public_key: Joi.string().required(),
@@ -38,7 +38,7 @@ const credentialPostSchema = {
 
   expired_date: Joi.string().required(),
 
-  credential_level: Joi.number().required(),
+  credential_type: Joi.number().required(),
 
   walletUser: {
     public_key: Joi.string().required(),
@@ -60,7 +60,7 @@ const updateCredentialSchema = Joi.object().keys({
 
   expired_date: Joi.string(),
 
-  credential_level: Joi.number(),
+  credential_type: Joi.number(),
 
   walletUser: {
     name: Joi.string(),

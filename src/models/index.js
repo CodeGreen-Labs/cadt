@@ -72,4 +72,6 @@ export const ModelKeys = {
   walletUsers: WalletUser,
   rule: Rule,
   rules: Rule,
+  credentialType: CredentialType,
+  credentialTypes: CredentialType,
 };
