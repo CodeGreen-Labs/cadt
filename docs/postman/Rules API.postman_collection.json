@@ -8,33 +8,6 @@
 	},
 	"item": [
 		{
-			"name": "update_rule",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"cat_id\": \"6800ab4a6e25bf9320a75cf6953a7d2403f597806375db71aea57c71a028e060333\",\n    \"origin_project_id\": \"e2e-test-004\",\n    \"warehouse_project_id\": \"4eab14ad-a2b1-488b-a584-be5fcb4bbdfb\",\n    \"warehouse_unit_id\": \"bdb5c549-7a56-43bc-beb8-8cd97699174d\",\n    \"issuance_id\": \"9fc0b816-3fa4-4e09-839e-17a8c02c655f\",\n    \"kyc_receiving\": 2,\n    \"kyc_retirement\": 2,\n    \"kyc_sending\": 1\n}\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/v1/rules",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"v1",
-						"rules"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "delete_rule",
 			"request": {
 				"method": "DELETE",
@@ -119,13 +92,39 @@
 			"response": []
 		},
 		{
+			"name": "update_rule",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"cat_id\": \"6800ab4a6e25bf9320a75cf6953a7d2403f597806375db71aea57c71a028e098\",\n    \"kyc_receiving\": \"5e0db2c6-1d21-4b9e-939b-514fafa3828f\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{BASE_URL}}/rules",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"rules"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "create_rule",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"cat_id\": \"6800ab4a6e25bf9320a75cf6953a7d2403f597806375db71aea57c71a028e097\",\n    \"origin_project_id\": \"e2e-test-003\",\n    \"warehouse_project_id\": \"751ad8a7-7066-4f5d-ac84-9dc41f360643\",\n    \"warehouse_unit_id\": \"cb2ca0a7-042d-4c81-bb93-00c53ca9c3e8\",\n    \"issuance_id\": \"a6745831-5d5e-45ed-b9fe-fd6aa129df25\",\n    \"kyc_receiving\": 1,\n    \"kyc_retirement\": 2,\n    \"kyc_sending\": 1\n}\n",
+					"raw": "{\n    \"cat_id\": \"6800ab4a6e25bf9320a75cf6953a7d2403f597806375db71aea57c71a028e099\",\n    \"origin_project_id\": \"e2e-test-092\",\n    \"warehouse_project_id\": \"9715dda4-2a0c-4e3e-8ce3-776ff3d38b0f\",\n    \"warehouse_unit_id\": \"198131c2-f76e-4ad7-a2e9-b7b530f8af2d\",\n    \"issuance_id\": \"b5c19dec-168a-4c6e-a77f-b0cafce3fb98\",\n    \"kyc_receiving\": \"5e0db2c6-1d21-4b9e-939b-514fafa3828f\",\n    \"kyc_retirement\": \"5e0db2c6-1d21-4b9e-939b-514fafa3828f\",\n    \"kyc_sending\": \"5e0db2c6-1d21-4b9e-939b-514fafa3828f\"\n}\n",
 					"options": {
 						"raw": {
 							"language": "json"

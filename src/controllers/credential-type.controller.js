@@ -23,15 +23,12 @@ export const create = async (req, res) => {
     await assertNoPendingCommits();
 
     const { orgUid } = await Organization.getHomeOrg();
-    console.log(req.body);
     const existingType = await CredentialType.findOne({
       where: {
         orgUid,
         name: req.body.name,
       },
     });
-
-    console.log(existingType);
 
     if (existingType)
       return res.status(400).json({
@@ -60,6 +57,66 @@ export const create = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       message: 'Error creating new credential type',
+      error: error.message,
+      success: false,
+    });
+  }
+};
+
+export const update = async (req, res) => {
+  try {
+    await assertIfReadOnlyMode();
+    await assertHomeOrgExists();
+    await assertNoPendingCommits();
+
+    const { id, ...data } = req.body;
+    const { orgUid } = await Organization.getHomeOrg();
+    const existingType = await CredentialType.findOne({
+      where: {
+        orgUid,
+        id,
+      },
+    });
+
+    if (!existingType)
+      return res.status(400).json({
+        message: 'The credential type is not existing under the organization.',
+        success: false,
+      });
+
+    await CredentialType.update(
+      { commit_status: 'staged', ...data },
+      {
+        where: {
+          id,
+          orgUid,
+        },
+      },
+    );
+
+    const credentialStagedData = {
+      uuid: id,
+      action: 'UPDATE',
+      table: CredentialType.stagingTableName,
+      data: JSON.stringify([
+        {
+          ...existingType.dataValues,
+          ...data,
+          commit_status: 'staged',
+        },
+      ]),
+    };
+
+    await Staging.upsert(credentialStagedData);
+
+    res.json({
+      message: 'Credential type update added to staging.',
+      success: true,
+      data: req.body,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: 'Error updating credential type',
       error: error.message,
       success: false,
     });
