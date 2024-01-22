@@ -9,4 +9,9 @@ const createCredentialTypeSchema = Joi.object({
   ...baseCredentialTypeSchema,
 });
 
-export { createCredentialTypeSchema };
+const updateCredentialTypeSchema = Joi.object({
+  ...baseCredentialTypeSchema,
+  id: Joi.string().required(),
+});
+
+export { createCredentialTypeSchema, updateCredentialTypeSchema };

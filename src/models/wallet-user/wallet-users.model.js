@@ -12,7 +12,7 @@ import { Credential } from '../';
 
 import { walletUserPostSchema } from '../../validations';
 class WalletUser extends Model {
-  static stagingTableName = 'WalletUsers';
+  static stagingTableName = 'walletUsers';
   static changes = new rxjs.Subject();
   static validateImport = walletUserPostSchema;
   static defaultColumns = Object.keys(ModelTypes);
@@ -61,10 +61,7 @@ class WalletUser extends Model {
 
     const result = await super.upsert({ ...values }, options);
 
-    WalletUser.changes.next([
-      this.stagingTableName.toLocaleLowerCase(),
-      values.orgUid,
-    ]);
+    WalletUser.changes.next([this.stagingTableName, values.orgUid]);
     return result;
   }
 }

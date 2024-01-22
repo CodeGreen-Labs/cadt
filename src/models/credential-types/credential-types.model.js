@@ -34,9 +34,8 @@ class CredentialType extends Model {
     });
     return await super.destroy(options);
   }
-
+  // Only committed changes will call upsert method.
   static async upsert(values, options) {
-    console.log('type upsert', values);
     const newRecord = {
       ...values,
       commit_status: 'committed',
