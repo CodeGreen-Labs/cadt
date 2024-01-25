@@ -133,22 +133,6 @@ class Rule extends Model {
     return result;
   }
 
-  static async fts(searchStr, orgUid, pagination, columns = []) {
-    const dialect = sequelize.getDialect();
-
-    const handlerMap = {
-      sqlite: Rule.findAllSqliteFts,
-      mysql: Rule.findAllMySQLFts,
-    };
-
-    return handlerMap[dialect](
-      searchStr,
-      orgUid,
-      pagination,
-      columns.filter((col) => !['createdAt', 'updatedAt'].includes(col)),
-    );
-  }
-
   static async generateChangeListFromStagedData(stagedData, comment, author) {
     const [insertRecords, updateRecords, deleteChangeList] =
       Staging.seperateStagingDataIntoActionGroups(stagedData, 'Rules');
