@@ -79,7 +79,7 @@ class Credential extends Model {
     });
 
     Credential.changes.next([this.stagingTableName.toLocaleLowerCase()]);
-    return super.destroy(options);
+    return await super.destroy(options);
   }
 
   // Upsert will only be called if the credential is committed.

@@ -106,7 +106,8 @@ class Rule extends Model {
       };
       await RuleMirror.destroy(mirrorOptions);
     });
-    return super.destroy(options);
+    Rule.changes.next([this.stagingTableName.toLocaleLowerCase()]);
+    return await super.destroy(options);
   }
 
   // Upsert will only be called if the rule is committed.
@@ -124,7 +125,12 @@ class Rule extends Model {
       await RuleMirror.upsert(newRecord, mirrorOptions);
     });
 
-    return super.upsert(newRecord, options);
+    const result = await super.upsert(newRecord, options);
+    Rule.changes.next([
+      this.stagingTableName.toLocaleLowerCase(),
+      values.orgUid,
+    ]);
+    return result;
   }
 
   static async fts(searchStr, orgUid, pagination, columns = []) {
