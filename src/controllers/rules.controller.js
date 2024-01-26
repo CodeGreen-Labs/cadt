@@ -46,7 +46,7 @@ export const create = async (req, res) => {
     });
   } catch (err) {
     res.status(400).json({
-      message: 'Error creating new rule',
+      message: 'Error on creating new rule',
       error: err.message,
       success: false,
     });
@@ -95,7 +95,6 @@ export const findAll = async (req, res) => {
       data: transformResult(rules),
     });
   } catch (error) {
-    console.trace(error);
     res.status(400).json({
       message: 'Error on retrieving rules',
       error: error.message,
@@ -111,6 +110,12 @@ export const findOne = async (req, res) => {
         return association.model;
       }),
     });
+
+    if (!result)
+      return res.status(404).json({
+        success: true,
+        data: null,
+      });
 
     res.json({
       success: true,
@@ -169,7 +174,7 @@ export const update = async (req, res) => {
     });
   } catch (err) {
     res.status(400).json({
-      message: 'Error updating new rule',
+      message: 'Error on creating new rule',
       error: err.message,
       success: false,
     });
@@ -200,12 +205,12 @@ export const destroy = async (req, res) => {
 
     await Staging.upsert(stagedData);
     res.json({
-      message: 'Rule deleted successfully',
+      message: 'Rule delete added to staging',
       success: true,
     });
   } catch (err) {
     res.status(400).json({
-      message: 'Error deleting rule',
+      message: 'Error on deleting rule',
       error: err.message,
       success: false,
     });
