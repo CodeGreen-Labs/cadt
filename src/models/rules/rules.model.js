@@ -106,7 +106,8 @@ class Rule extends Model {
       };
       await RuleMirror.destroy(mirrorOptions);
     });
-    return super.destroy(options);
+    Rule.changes.next([this.stagingTableName.toLocaleLowerCase()]);
+    return await super.destroy(options);
   }
 
   // Upsert will only be called if the rule is committed.
@@ -124,23 +125,12 @@ class Rule extends Model {
       await RuleMirror.upsert(newRecord, mirrorOptions);
     });
 
-    return super.upsert(newRecord, options);
-  }
-
-  static async fts(searchStr, orgUid, pagination, columns = []) {
-    const dialect = sequelize.getDialect();
-
-    const handlerMap = {
-      sqlite: Rule.findAllSqliteFts,
-      mysql: Rule.findAllMySQLFts,
-    };
-
-    return handlerMap[dialect](
-      searchStr,
-      orgUid,
-      pagination,
-      columns.filter((col) => !['createdAt', 'updatedAt'].includes(col)),
-    );
+    const result = await super.upsert(newRecord, options);
+    Rule.changes.next([
+      this.stagingTableName.toLocaleLowerCase(),
+      values.orgUid,
+    ]);
+    return result;
   }
 
   static async generateChangeListFromStagedData(stagedData, comment, author) {

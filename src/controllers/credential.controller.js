@@ -60,6 +60,12 @@ export const findByWalletAddress = async (req, res) => {
       where: { '$walletUser.public_key$': address },
     });
 
+    if (!result)
+      return res.status(404).json({
+        success: true,
+        data: null,
+      });
+
     res.json({
       success: true,
       data: {
@@ -137,7 +143,7 @@ export const create = async (req, res) => {
     });
   } catch (error) {
     res.status(400).json({
-      message: 'Error creating new credential',
+      message: 'Error on creating new credential',
       error: error.message,
       success: false,
     });
@@ -195,7 +201,7 @@ export const update = async (req, res) => {
     });
   } catch (err) {
     res.status(400).json({
-      message: 'Error updating credential',
+      message: 'Error on updating credential',
       error: err.message,
       success: false,
     });
@@ -245,7 +251,7 @@ export const destroy = async (req, res) => {
     });
   } catch (err) {
     res.status(400).json({
-      message: 'Error delete credential',
+      message: 'Error on deleting credential',
       error: err.message,
       success: false,
     });
