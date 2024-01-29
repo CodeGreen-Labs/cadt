@@ -1,6 +1,10 @@
-# Climate Action Data Trust 
+# Climate Action Data Trust (CADT) - Modified Version by CodeGreen
+
+
+<b>Note: This version by CodeGreen includes two additional features not present in the original CADT: credentials and asset rule data models.，、</b>
 
 ​This project provides the Climate Action Data Trust (CADT) API that integrates with the [Chia Blockchain](https://github.com/Chia-Network/chia-blockchain).  For a user interface, see the [CADT UI project](https://github.com/Chia-Network/climate-warehouse-ui) which will connect to the CADT API.
+
 
 This project was formerly known as the Climate Warehouse and you may see this term used interchangeably with CADT. 
 
@@ -9,6 +13,7 @@ This project was formerly known as the Climate Warehouse and you may see this te
 ## User Guide
 
 The CADT application is designed to run 24/7, much like any other API.  While it is possible to run it on-demand only when API requests need to be made, this guide assumes a permanently running solution.  
+
 
 The simplest way to run the CADT application is to use the same machine the Chia Wallet, Datalayer, and Datalayer HTTP services.  CADT communicates with the Chia services over an RPC interface.  The RPC interface uses certificates to authenticate, which will work automatically when the CADT application is run as the same user on the same machine as the Chia services.  To run CADT on a separate machine from Chia, a public certificate from the Chia node most be used to authenticate (not yet documented).
 
