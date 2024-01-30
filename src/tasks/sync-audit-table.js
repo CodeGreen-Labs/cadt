@@ -6,7 +6,14 @@ import { SimpleIntervalJob, Task } from 'toad-scheduler';
 import { logger } from '../config/logger.cjs';
 import { mirrorDBEnabled, sequelize, sequelizeMirror } from '../database';
 import datalayer from '../datalayer';
-import { Audit, Meta, ModelKeys, Organization, Staging } from '../models';
+import {
+  Audit,
+  Meta,
+  ModelKeys,
+  Organization,
+  Simulator,
+  Staging,
+} from '../models';
 import { getConfig } from '../utils/config-loader';
 import {
   assertDataLayerAvailable,
@@ -110,7 +117,21 @@ const processJob = async () => {
   });
 
   for (const organization of organizations) {
-    await syncOrganizationAudit(organization);
+    if (CONFIG.USE_SIMULATOR) {
+      const diff = await Simulator.getMockedKvDiffFromStagingTable();
+      if (diff.length > 0) {
+        logger.info('Starting sync organization data for simulator mode...');
+        await syncOrganizationAudit(organization);
+      } else {
+        await Organization.update(
+          {
+            synced: true,
+            sync_remaining: 0,
+          },
+          { where: { orgUid: organization.orgUid } },
+        );
+      }
+    } else await syncOrganizationAudit(organization);
   }
 };
 
